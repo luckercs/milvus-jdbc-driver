@@ -1,6 +1,6 @@
-# milvus2milvus
+# milvus-jdbc-driver
 
-milvus 数据导入导出工具, 支持 2.5.x 等版本
+milvus-jdbc驱动程序, 支持sql形式查询milvus， 支持 2.5.x 等版本
 
 ## (1) Requirements
 - jdk8
