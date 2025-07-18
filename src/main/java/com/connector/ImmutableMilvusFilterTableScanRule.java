@@ -1,4 +1,4 @@
-package connector;
+package com.connector;
 
 import com.google.common.base.MoreObjects;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;

@@ -1,4 +1,4 @@
-package connector;
+package com.connector;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;

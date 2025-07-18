@@ -1,4 +1,4 @@
-package connector;
+package com.connector;
 
 import com.alibaba.fastjson.JSONObject;
 import io.milvus.client.MilvusServiceClient;

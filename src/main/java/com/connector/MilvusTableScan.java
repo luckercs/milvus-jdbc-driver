@@ -1,4 +1,4 @@
-package connector;
+package com.connector;
 
 import org.apache.calcite.adapter.enumerable.*;
 import org.apache.calcite.linq4j.tree.Blocks;
@@ -13,14 +13,11 @@ import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rel.type.RelRecordType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class MilvusTableScan extends TableScan implements EnumerableRel {
     private static final Logger LOG = LoggerFactory.getLogger(MilvusTableScan.class);

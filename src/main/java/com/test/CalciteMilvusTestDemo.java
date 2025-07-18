@@ -1,4 +1,4 @@
-package test;
+package com.test;
 
 import com.connector.FeatureGen;
 import com.connector.MilvusSchemaFactory;
@@ -11,7 +11,6 @@ import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
-import org.apache.calcite.schema.impl.TableFunctionImpl;
 import org.apache.calcite.server.CalciteServerStatement;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParser;
@@ -66,7 +65,7 @@ public class CalciteMilvusTestDemo {
         String sql2 = "select f3,f4,f5,id from milvus.test_tbl limit 101";
         String sql3 = "select count(*) from milvus.test_tbl";
         String sql4 = "select t1.id,t2.id from milvus.test_tbl as t1 join milvus.test_tbl2 as t2 on t1.id=t2.id";
-        String sql5 = String.format("select * from table(milvus_search('test','test_tbl',null,'id,vec','vec',10,null,'L2','{\"nprobe\":10,\"offset\":0 }','%s',false)) as t", vecStr);
+        String sql5 = String.format("select * from table(milvus_search('com.test','test_tbl',null,'id,vec','vec',10,null,'L2','{\"nprobe\":10,\"offset\":0 }','%s',false)) as t", vecStr);
 
         // 语法修改
         String sql6 = "select * from milvus.test_tbl where vec like [[]] and  milvus_search_params(params)";

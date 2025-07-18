@@ -16,7 +16,8 @@
 
         <log4j2.version>2.17.2</log4j2.version>
         <calcite.version>1.40.0</calcite.version>
-        <milvus.sdk.version>2.5.9</milvus.sdk.version>
+        <avatica.version>1.26.0</avatica.version>
+        <milvus.sdk.version>2.5.10</milvus.sdk.version>
     </properties>
 
     <dependencies>
@@ -40,6 +41,11 @@
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
             <version>${calcite.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.calcite.avatica</groupId>
+            <artifactId>avatica-server</artifactId>
+            <version>${avatica.version}</version>
         </dependency>
 
         <dependency>

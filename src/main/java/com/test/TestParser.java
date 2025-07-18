@@ -1,4 +1,4 @@
-package test;
+package com.test;
 
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -8,8 +8,8 @@ import org.apache.calcite.sql.validate.SqlConformanceEnum;
 
 public class TestParser {
     public static void main(String[] args) throws SqlParseException {
-        String sql = "alter system UPLOAD JAR 'hdfs://ns1/test.jar'";
-        String sql2 = "alter system upload jar 'hdfs://ns1/test.jar'";
+        String sql = "alter system UPLOAD JAR 'hdfs://ns1/com.test.jar'";
+        String sql2 = "alter system upload jar 'hdfs://ns1/com.test.jar'";
         String sql3 = "show tables";
         String sql13 = "select id, vec,f6 from milvus.test_tbl /*+ properties(k1='v1', k2='v2'), index(ename), no_hash_join */  where  id < '5' limit 10";
 

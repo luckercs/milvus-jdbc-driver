@@ -1,3 +1,5 @@
+package com;
+
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.IndexParam;
@@ -111,14 +113,14 @@ public class MilvusUtil {
         MilvusUtil milvusUtil = new MilvusUtil("http://localhost:19530", "");
         milvusUtil.createDatabase("test", null);
 
-//        MilvusClientV2 milvusClient = milvusUtil.getMilvusClient("test");
+//        MilvusClientV2 milvusClient = milvusUtil.getMilvusClient("com.test");
 //        CreateCollectionReq.CollectionSchema collectionSchema = CreateCollectionReq.CollectionSchema.builder().build();
 //        collectionSchema.addField(AddFieldReq.builder().fieldName("my_id").dataType(DataType.Int64).isPrimaryKey(true).build());
 //        collectionSchema.addField(AddFieldReq.builder().fieldName("my_vector").dataType(DataType.FloatVector).dimension(5).build());
 //        collectionSchema.addField(AddFieldReq.builder().fieldName("my_varchar").dataType(DataType.VarChar).maxLength(512).build());
 //        List<IndexParam> indexParams = new ArrayList<>();
 //        indexParams.add(IndexParam.builder().fieldName("my_vector").indexType(IndexParam.IndexType.AUTOINDEX).metricType(IndexParam.MetricType.COSINE).build());
-//        milvusClient.createCollection(CreateCollectionReq.builder().databaseName("test").collectionName("test2").collectionSchema(collectionSchema).indexParams(indexParams).build());
+//        milvusClient.createCollection(CreateCollectionReq.builder().databaseName("com.test").collectionName("test2").collectionSchema(collectionSchema).indexParams(indexParams).build());
 //        milvusClient.close();
 //
 //        milvusClient = milvusUtil.getMilvusClient("default");
@@ -137,7 +139,7 @@ public class MilvusUtil {
         System.out.println(allDbs);
         System.out.println("=================");
 
-//        List<String> allCollections = milvusUtil.findAllCollections("test");
+//        List<String> allCollections = milvusUtil.findAllCollections("com.test");
 //        System.out.println(allCollections);
     }
 }

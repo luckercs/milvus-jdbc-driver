@@ -3,7 +3,7 @@
 milvus-jdbc驱动程序, 支持sql形式查询milvus
 
 ## (1) TODO
-- jdbc-server
+- jdbc-com.server
 - jdbc-client
 
 

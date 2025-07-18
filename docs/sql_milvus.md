@@ -66,27 +66,27 @@ roles Operations
 
 ```mysql
 -- 向量相似性查询
-SELECT id, vec from test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10;
--- SELECT milvus_similarity_search('database'='test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10);
+SELECT id, vec from com.test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10;
+-- SELECT milvus_similarity_search('database'='com.test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10);
 
 -- 向量相似性混合标量查询
-SELECT id, vec from test.test_tbl where id in ['1','2','3'] ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10;
--- SELECT milvus_similarity_search('database'='test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10, 'expr'="id in ['1','2','3']");
+SELECT id, vec from com.test.test_tbl where id in ['1','2','3'] ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10;
+-- SELECT milvus_similarity_search('database'='com.test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10, 'expr'="id in ['1','2','3']");
 
 -- 向量相似性范围查询
-SELECT id, vec from test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0,"radius":20,"range_filter":17}')(vec,[[0.1,0.2,...]]) LIMIT 10;
--- SELECT milvus_similarity_search('database'='test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0,"radius":20,"range_filter":17}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10);
+SELECT id, vec from com.test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0,"radius":20,"range_filter":17}')(vec,[[0.1,0.2,...]]) LIMIT 10;
+-- SELECT milvus_similarity_search('database'='com.test','collection'='test_tbl','output'='id,vec','metricType'='L2','searchParams'='{"nprobe":10,"offset":0,"radius":20,"range_filter":17}','vectorfiled'='vec','vectors'=[[0.1,0.2,...]], 'topk'=10);
 
 -- 标量过滤查询
-SELECT id, vec from test.test_tbl where id in ['1','2','3'] LIMIT 10;
--- SELECT milvus_query('database'='test','collection'='test_tbl','output'='id,vec','topk'=10, 'expr'="id in ['1','2','3']");
+SELECT id, vec from com.test.test_tbl where id in ['1','2','3'] LIMIT 10;
+-- SELECT milvus_query('database'='com.test','collection'='test_tbl','output'='id,vec','topk'=10, 'expr'="id in ['1','2','3']");
 
 -- 标量聚合查询
-SELECT count(*) from test.test_tbl;
--- SELECT milvus_query('database'='test','collection'='test_tbl','output'='count(*)'");
+SELECT count(*) from com.test.test_tbl;
+-- SELECT milvus_query('database'='com.test','collection'='test_tbl','output'='count(*)'");
 
 -- 关联常规数据源进行查询
-select * from (SELECT id from test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10) as a join mysql.tbl as b on a.id=b.id;
+select * from (SELECT id from com.test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,[[0.1,0.2,...]]) LIMIT 10) as a join mysql.tbl as b on a.id=b.id;
 
 
 ```
@@ -95,30 +95,30 @@ select * from (SELECT id from test.test_tbl ORDER BY distance('metricType=L2','s
 
 ```mysql
 -- 建库
-CREATE DATABASE test;
+CREATE DATABASE com.test;
 
 -- 建表以及索引
-CREATE TABLE if not exists test.test_tbl
+CREATE TABLE if not exists com.test.test_tbl
 (
     id  varchar(100)  comment "id",
     vec Array(Float32) comment "vec",
     CONSTRAINT check_length CHECK length(vector) = 128,
     PRIMARY KEY(id),
     VECTOR INDEX idx_vector_filed(vec,L2,SCANN,"{\"nlist\":1024}");
-) comment "test tbl";
+) comment "com.test tbl";
 
 -- 添加索引
-ALTER TABLE test.test_tbl ADD VECTOR INDEX idx_vector_filed vec TYPE SCANN
+ALTER TABLE com.test.test_tbl ADD VECTOR INDEX idx_vector_filed vec TYPE SCANN
     (
     'metricType = L2',
     'indexParams = {"nlist":1024}',
     );
 
 -- 插入
-insert into test.test_tbl(id, vec) values('0',[0.1,0.2,...]);
+insert into com.test.test_tbl(id, vec) values('0',[0.1,0.2,...]);
 
 -- 特征抽取函数封装
-SELECT id from test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,feature(s3://xx)) LIMIT 10;
+SELECT id from com.test.test_tbl ORDER BY distance('metricType=L2','searchParams={"nprobe":10,"offset":0}')(vec,feature(s3://xx)) LIMIT 10;
 
 
 -- 多实例支持大规模,均衡

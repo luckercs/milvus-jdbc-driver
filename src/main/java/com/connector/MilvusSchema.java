@@ -1,4 +1,4 @@
-package connector;
+package com.connector;
 
 import com.google.protobuf.ProtocolStringList;
 import io.milvus.client.MilvusServiceClient;
