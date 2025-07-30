@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 import com.google.common.base.MoreObjects;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;

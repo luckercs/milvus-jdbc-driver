@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.calcite.plan.RelOptRuleCall;

@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaFactory;

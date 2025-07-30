@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 import org.apache.calcite.adapter.enumerable.*;
 import org.apache.calcite.linq4j.tree.Blocks;

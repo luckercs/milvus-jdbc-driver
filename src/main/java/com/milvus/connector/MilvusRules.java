@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 public abstract class MilvusRules {
     private MilvusRules(){}

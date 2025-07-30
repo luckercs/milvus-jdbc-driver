@@ -1,4 +1,4 @@
-package com.connector;
+package com.milvus.connector;
 
 import com.google.protobuf.ProtocolStringList;
 import io.milvus.client.MilvusServiceClient;
@@ -11,6 +11,10 @@ import org.apache.calcite.schema.impl.AbstractSchema;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+/**
+ *  所有表的集合实现
+ */
 
 public class MilvusSchema extends AbstractSchema {
     private final String milvusConnectURL;
