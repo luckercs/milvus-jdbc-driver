@@ -19,24 +19,31 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Properties;
 
 /**
- * 仅 milvus 数据源查询
+ * 支持 milvus 数据源 和 其他 JDBC数据源混合查询
  */
-public class MilvusJdbcDemo {
+public class MilvusJdbcDemo2 {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MilvusJdbcDemo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MilvusJdbcDemo2.class);
 
     private static final String MILVUS_JDBC_DRIVER = "com.milvus.jdbc.Driver";
-    private static final String MILVUS_JDBC_URL = "jdbc:milvus://localhost:19530/default";
-
-    private static final String USER = "root";
-    private static final String PASS = "Milvus";
-
+    private static final String MILVUS_JDBC_URL = "jdbc:milvus:";
 
     public static void main(String[] args) throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("milvus.url", "http://localhost:19530");
+        properties.setProperty("milvus.user", "root");
+        properties.setProperty("milvus.password", "milvus");
+        properties.setProperty("milvus.db", "default");
+
+        properties.setProperty("jdbc.driver", "com.mysql.cj.jdbc.Driver");
+        properties.setProperty("jdbc.url", "jdbc:mysql://localhost:3306/db1");
+        properties.setProperty("jdbc.user", "root");
+        properties.setProperty("jdbc.password", "mysql");
         Class.forName(MILVUS_JDBC_DRIVER);
-        Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
+        Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, properties);
 
         String sql = "SELECT id, name, age FROM mytable";
         Statement statement = connection.createStatement();
@@ -59,7 +66,7 @@ public class MilvusJdbcDemo {
         }
     }
 
-    public static void printPlan(CalciteConnection calciteConnection, String sql) throws Exception {
+    public static void printPlan( CalciteConnection calciteConnection,  String sql) throws Exception {
         CalciteServerStatement calciteServerStatement = calciteConnection.createStatement().unwrap(CalciteServerStatement.class);
         CalcitePrepare.Context prepareContext = calciteServerStatement.createPrepareContext();
         FrameworkConfig frameworkConfig = Frameworks.newConfigBuilder().parserConfig(SqlParser.configBuilder().setLex(Lex.MYSQL).build())
