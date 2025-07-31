@@ -1,20 +1,25 @@
 package com.milvus.jdbc;
 
+import com.milvus.connector.FeatureGen;
 import com.milvus.connector.MilvusSchema;
 import com.milvus.connector.MilvusSchemaFactory;
 import com.milvus.connector.MilvusSchemaOptions;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 public class Driver extends org.apache.calcite.jdbc.Driver {
 
     public static final String CONNECT_STRING_PREFIX = "jdbc:milvus:";
-    private static final String DATASOURCE_MILVUS = "schema.milvus.";
-    private static final String DATASOURCE_JDBC = "schema.jdbc.";
+
+    private static final String DATASOURCE_MILVUS = "milvus.";
+    private static final String DATASOURCE_JDBC = "jdbc.";
 
     static {
         (new Driver()).register();
@@ -24,17 +29,13 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         return CONNECT_STRING_PREFIX;
     }
 
-    // driver properties 往 schemafactory 传递参数，参数前缀必须是schema., 传递到 schemafactory 后，会去掉schema.前缀
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         if (!acceptsURL(url)) {
             throw new SQLException("URL " + url + " not supported");
         }
-
-        info.setProperty("schema", "milvus");
-        info.setProperty("type", "custom");
-        info.setProperty("schemaFactory", "com.milvus.connector.MilvusSchemaFactory");
-        info.setProperty("defaultSchema", "milvus");
+        info.setProperty("lex", "MYSQL");
+        Connection connection = super.connect(url, info);
 
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName)) {
             info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName, info.getProperty("user", "root"));
@@ -42,19 +43,21 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord)) {
             info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord, info.getProperty("password", ""));
         }
-
         if (url.contains("//")) {
             parseMilvusUrl(url, info);
         }
 
-        Connection connection = super.connect(url, info);
+        // add schemas
+        Properties milvusProps = filterDataSourceProps(info, DATASOURCE_MILVUS);
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
-        rootSchema.add("milvus", new MilvusSchema(info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URL),
-                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName),
-                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord),
-                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB)));
+        rootSchema.add("milvus", new MilvusSchema(
+                milvusProps.getProperty(MilvusSchemaOptions.URL),
+                milvusProps.getProperty(MilvusSchemaOptions.UserName),
+                milvusProps.getProperty(MilvusSchemaOptions.PassWord),
+                milvusProps.getProperty(MilvusSchemaOptions.DB)));
 
+        rootSchema.add("gen_vector", ScalarFunctionImpl.create(FeatureGen.class, "gen_random_float_vectors_str"));
         return connection;
     }
 
@@ -87,5 +90,22 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
                 }
             }
         }
+    }
+
+    private static Properties filterDataSourceProps(Properties originalProperties, String dataSourceName) {
+        Properties resProperties = new Properties();
+
+        if (originalProperties == null) {
+            return resProperties;
+        }
+
+        Set<Object> keys = originalProperties.keySet();
+        for (Object key : keys) {
+            if (key != null && ((String)key).startsWith(dataSourceName)) {
+                String value = (String) originalProperties.get(key);
+                resProperties.setProperty(((String)key).replace(dataSourceName, ""), value);
+            }
+        }
+        return resProperties;
     }
 }

@@ -29,12 +29,11 @@ public class MilvusSchemaFactory implements SchemaFactory {
 
     @Override
     public Schema create(SchemaPlus schemaPlus, String name, Map<String, Object> operand) {
-        Properties milvusProps = filterDataSourceProps(operand, "milvus");
         Schema milvusSchema = new MilvusSchema(
-                milvusProps.getProperty(MilvusSchemaOptions.URL),
-                milvusProps.getProperty(MilvusSchemaOptions.UserName),
-                milvusProps.getProperty(MilvusSchemaOptions.PassWord),
-                milvusProps.getProperty(MilvusSchemaOptions.DB));
+                (String) operand.get(MilvusSchemaOptions.URL),
+                (String) operand.get(MilvusSchemaOptions.UserName),
+                (String) operand.get(MilvusSchemaOptions.PassWord),
+                (String) operand.get(MilvusSchemaOptions.DB));
         return milvusSchema;
     }
 
@@ -47,22 +46,7 @@ public class MilvusSchemaFactory implements SchemaFactory {
 //        return new MilvusSchema(milvusConnectURL, milvusConnectUsername, milvusConnectPassword, milvusConnectDatabase);
 //}
 
-public static Properties filterDataSourceProps(Map<String, Object> originalProperties, String dataSourceName) {
-    Properties resProperties = new Properties();
 
-    if (originalProperties == null) {
-        return resProperties;
-    }
-
-    Set<String> keys = originalProperties.keySet();
-    for (String key : keys) {
-        if (key != null && key.startsWith(dataSourceName + ".")) {
-            String value = (String) originalProperties.get(key);
-            resProperties.setProperty(key.replace(dataSourceName + ".", ""), value);
-        }
-    }
-    return resProperties;
-}
 }
 
 

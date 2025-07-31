@@ -39,6 +39,7 @@ public class MilvusJdbcDemo {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
+//        String sql = "SHOW tables";
         String sql = "select * from milvus.test";
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
