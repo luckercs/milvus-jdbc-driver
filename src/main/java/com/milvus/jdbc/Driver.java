@@ -1,6 +1,10 @@
 package com.milvus.jdbc;
 
+import com.milvus.connector.MilvusSchema;
+import com.milvus.connector.MilvusSchemaFactory;
 import com.milvus.connector.MilvusSchemaOptions;
+import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.schema.SchemaPlus;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,8 +31,8 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
             throw new SQLException("URL " + url + " not supported");
         }
 
-        info.setProperty("schema.name", "milvus");
-        info.setProperty("schema.type", "custom");
+        info.setProperty("schema", "milvus");
+        info.setProperty("type", "custom");
         info.setProperty("schemaFactory", "com.milvus.connector.MilvusSchemaFactory");
         info.setProperty("defaultSchema", "milvus");
 
@@ -43,7 +47,15 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
             parseMilvusUrl(url, info);
         }
 
-        return super.connect(url, info);
+        Connection connection = super.connect(url, info);
+        CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
+        SchemaPlus rootSchema = calciteConnection.getRootSchema();
+        rootSchema.add("milvus", new MilvusSchema(info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URL),
+                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName),
+                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord),
+                info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB)));
+
+        return connection;
     }
 
     private void parseMilvusUrl(String url, Properties props) {
