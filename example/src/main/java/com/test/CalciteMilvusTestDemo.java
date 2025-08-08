@@ -1,6 +1,6 @@
 package com.test;
 
-import com.milvus.connector.FeatureGen;
+import com.milvus.functions.FeatureGen;
 import com.milvus.connector.MilvusSchemaFactory;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteConnection;

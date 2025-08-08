@@ -1,6 +1,7 @@
 package com.milvus.connector;
 
 import com.google.protobuf.ProtocolStringList;
+import com.milvus.util.MilvusProxy;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.grpc.ShowCollectionsResponse;
 import io.milvus.param.ConnectParam;
@@ -13,65 +14,24 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- *  所有表的集合实现
+ * 所有表的集合实现
  */
 
 public class MilvusSchema extends AbstractSchema {
-    private final String milvusConnectURL;
-    private final String milvusConnectUsername;
-    private final String milvusConnectPassword;
-    private final String milvusConnectDatabase;
+    private final MilvusProxy milvusProxy;
 
-    private LinkedHashMap<String, Table> tableMaps;
-
-    public MilvusSchema(String milvusConnectURL, String milvusConnectUsername, String milvusConnectPassword, String milvusConnectDatabase) {
-        Objects.requireNonNull(milvusConnectURL);
-        this.milvusConnectURL = milvusConnectURL.trim();
-        this.milvusConnectUsername = milvusConnectUsername.trim();
-        this.milvusConnectPassword = milvusConnectPassword.trim();
-        if (milvusConnectDatabase == null || milvusConnectDatabase.trim().isEmpty()) {
-            this.milvusConnectDatabase = "default";
-        } else {
-            this.milvusConnectDatabase = milvusConnectDatabase;
-        }
+    public MilvusSchema(String uri, String user, String password, String db, int timeoutMs, boolean useSSL) {
+        this.milvusProxy =  new MilvusProxy(uri, user, password, db, timeoutMs, useSSL);
     }
 
     @Override
     protected Map<String, Table> getTableMap() {
-        if (tableMaps != null) {
-            return tableMaps;
-        }
-        MilvusServiceClient milvusClient = getMilvusClient();
-        ShowCollectionsParam showCollectionsParam = ShowCollectionsParam.newBuilder().withDatabaseName(milvusConnectDatabase).build();
-        R<ShowCollectionsResponse> showCollectionsResponseR = milvusClient.showCollections(showCollectionsParam);
-        handleMilvusResponseStatus(showCollectionsResponseR);
-        closeMilvusClient(milvusClient);
-        ProtocolStringList collectionNamesList = showCollectionsResponseR.getData().getCollectionNamesList();
-        List<String> collectionNames = new ArrayList<>();
-        for (Object collectionName : collectionNamesList.toArray()) {
-            collectionNames.add((String) collectionName);
-            System.out.println("found milvus table: " + collectionName);
-        }
-        tableMaps = new LinkedHashMap<>();
+        List<String> collectionNames = milvusProxy.getAllCollections();
+        Map<String, Table> tableMaps = new LinkedHashMap<>();
         for (String collectionName : collectionNames) {
-            tableMaps.put(collectionName, new MilvusTable(milvusConnectDatabase, collectionName, this));
+            tableMaps.put(milvusProxy.getDb() + "." + collectionName, new MilvusTable(milvusProxy, collectionName));
         }
         return tableMaps;
-    }
-
-    public MilvusServiceClient getMilvusClient() {
-        ConnectParam connectParam = ConnectParam.newBuilder()
-                .withUri(milvusConnectURL)
-                .withAuthorization(milvusConnectUsername, milvusConnectPassword)
-                .withDatabaseName(milvusConnectDatabase)
-                .withConnectTimeout(30, TimeUnit.SECONDS)
-                .build();
-        MilvusServiceClient milvusServiceClient = new MilvusServiceClient(connectParam);
-        return milvusServiceClient;
-    }
-
-    public void closeMilvusClient(MilvusServiceClient milvusServiceClient) {
-        milvusServiceClient.close();
     }
 
     public void handleMilvusResponseStatus(R<?> r) {

@@ -1,16 +1,14 @@
 package com.milvus.jdbc;
 
-import com.milvus.connector.FeatureGen;
+import com.milvus.functions.FeatureGen;
 import com.milvus.connector.MilvusSchema;
-import com.milvus.connector.MilvusSchemaFactory;
-import com.milvus.connector.MilvusSchemaOptions;
+import com.milvus.options.MilvusSchemaOptions;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -37,8 +35,8 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         info.setProperty("lex", "MYSQL");
         Connection connection = super.connect(url, info);
 
-        if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName)) {
-            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UserName, info.getProperty("user", "root"));
+        if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.User)) {
+            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty("user", "root"));
         }
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord)) {
             info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord, info.getProperty("password", ""));
@@ -52,10 +50,14 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
         rootSchema.add("milvus", new MilvusSchema(
-                milvusProps.getProperty(MilvusSchemaOptions.URL),
-                milvusProps.getProperty(MilvusSchemaOptions.UserName),
-                milvusProps.getProperty(MilvusSchemaOptions.PassWord),
-                milvusProps.getProperty(MilvusSchemaOptions.DB)));
+                        milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim(),
+                        milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim(),
+                        milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim(),
+                        milvusProps.getProperty(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB)).trim(),
+                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.TimeOutMs)).trim()),
+                        Boolean.parseBoolean(milvusProps.getProperty(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.UseSSL)).trim())
+                )
+        );
 
         rootSchema.add("gen_vector", ScalarFunctionImpl.create(FeatureGen.class, "gen_random_float_vectors_str"));
         return connection;
@@ -71,9 +73,9 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
 
         String url_suffixes = url.split("//")[1];
         if (!url_suffixes.contains("/")) {
-            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URL, url_suffixes);
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URI, url_suffixes);
         } else {
-            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URL, url_suffixes.split("/")[0]);
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URI, url_suffixes.split("/")[0]);
             if (url_suffixes.split("/").length > 1) {
                 String db_suffixes = url_suffixes.split("/")[1];
                 if (!db_suffixes.contains("?")) {
@@ -90,6 +92,12 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
                 }
             }
         }
+        String uriWithoutPrefix = props.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URI);
+        if (props.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UseSSL).equals("true")) {
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URI, "https://" + uriWithoutPrefix);
+        } else {
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.URI, "http://" + uriWithoutPrefix);
+        }
     }
 
     private static Properties filterDataSourceProps(Properties originalProperties, String dataSourceName) {
@@ -101,9 +109,9 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
 
         Set<Object> keys = originalProperties.keySet();
         for (Object key : keys) {
-            if (key != null && ((String)key).startsWith(dataSourceName)) {
+            if (key != null && ((String) key).startsWith(dataSourceName)) {
                 String value = (String) originalProperties.get(key);
-                resProperties.setProperty(((String)key).replace(dataSourceName, ""), value);
+                resProperties.setProperty(((String) key).replace(dataSourceName, ""), value);
             }
         }
         return resProperties;

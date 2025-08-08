@@ -1,4 +1,4 @@
-package com.milvus.connector;
+package com.milvus.functions;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

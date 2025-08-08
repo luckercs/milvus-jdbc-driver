@@ -1,6 +1,6 @@
 package com.test;
 
-import com.milvus.connector.MilvusSchemaOptions;
+import com.milvus.options.MilvusSchemaOptions;
 
 import java.util.Properties;
 
