@@ -20,13 +20,15 @@ import java.util.*;
 public class MilvusTable extends AbstractTable {
     private static final Logger LOG = LoggerFactory.getLogger(MilvusTable.class);
 
-    private final MilvusProxy milvusProxy;
-    private final String collectionName;
-    private DescribeCollectionResp collectionDesc;
+    protected final MilvusProxy milvusProxy;
+    protected final String dbName;
+    protected final String collectionName;
+    protected DescribeCollectionResp collectionDesc;
 
     public MilvusTable(MilvusProxy milvusProxy, String collectionName) {
         this.milvusProxy = milvusProxy;
         this.collectionName = collectionName;
+        this.dbName = milvusProxy.getDb();
     }
 
     @Override
@@ -101,28 +103,26 @@ public class MilvusTable extends AbstractTable {
                 case JSON:
                     fieldInfoBuilder.add(fieldName, SqlTypeName.VARCHAR);
                     break;
-                case BinaryVector:    // [0,1,0,1,0,0]
+                case BinaryVector:    // [0,1,0,1,0,0]    ByteBuffer   [转为字节数组]
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
                 case FloatVector:    // [0.123, 2.345, -3.456, 4.567]
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
                     break;
-                case Float16Vector:  // [0.5f, 1.2f, 3.7f]   java 不支持
-                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
+                case Float16Vector:  // [0.5f, 1.2f, 3.7f]   java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
+                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.SMALLINT), -1));
                     break;
-                case BFloat16Vector:  // [1.0f, 2.0f, 3.0f, 4.0f, 5.0f]
-                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
+                case BFloat16Vector:  // [1.0f, 2.0f, 3.0f, 4.0f, 5.0f] java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
+                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.SMALLINT), -1));
                     break;
-                case SparseFloatVector:  // {(1, 0.5), (4, 1.2), (7, 2.3)}
-                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
+                case SparseFloatVector:  // {(1, 0.5), (4, 1.2), (7, 2.3)}  SortedMap<Long, Float>
+                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createMapType(relDataTypeFactory.createSqlType(SqlTypeName.BIGINT), relDataTypeFactory.createSqlType(SqlTypeName.FLOAT)));
                     break;
                 default:
                     throw new RuntimeException("Unable to recognize Milvus data type: " + fieldType.toString());
             }
         }
 
-        Gson gson = new Gson();
-        gson.toJsonTree()
         return fieldInfoBuilder.build();
     }
 }

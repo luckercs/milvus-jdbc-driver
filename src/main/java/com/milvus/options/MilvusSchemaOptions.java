@@ -11,6 +11,7 @@ public class MilvusSchemaOptions {
     public static final String DB = "db";
     public static final String TimeOutMs = "timeout";
     public static final String UseSSL = "useSSL";
+    public static final String BatchSize = "batchsize";
 
     private static final Map<String, Object> DEFAULT_VALUES;
 
@@ -22,6 +23,7 @@ public class MilvusSchemaOptions {
         DEFAULT_VALUES.put(DB, "default");
         DEFAULT_VALUES.put(TimeOutMs, 60000);
         DEFAULT_VALUES.put(UseSSL, false);
+        DEFAULT_VALUES.put(BatchSize, 1000);
     }
 
     public static String getStringDefaultValue(String key) {

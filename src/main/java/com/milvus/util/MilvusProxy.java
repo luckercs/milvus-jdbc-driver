@@ -1,5 +1,6 @@
 package com.milvus.util;
 
+import io.milvus.orm.iterator.QueryIterator;
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.IndexParam;
@@ -33,19 +34,25 @@ public class MilvusProxy {
     private final String db;
     private final int timeoutMs;
     private final boolean useSSL;
+    private final int batchSize;
 
 
-    public MilvusProxy(String uri, String user, String password, String db, int timeoutMs, boolean useSSL) {
+    public MilvusProxy(String uri, String user, String password, String db, int timeoutMs, boolean useSSL, int batchSize) {
         this.uri = uri;
         this.user = user;
         this.password = password;
         this.db = db;
         this.timeoutMs = timeoutMs;
         this.useSSL = useSSL;
+        this.batchSize = batchSize;
     }
 
     public String getDb() {
         return db;
+    }
+
+    public Integer getBatchSize() {
+        return batchSize;
     }
 
     public MilvusClientV2 getClient() {
@@ -58,10 +65,18 @@ public class MilvusProxy {
                 .build();
         return new MilvusClientV2(connectConfig);
     }
-    public void closeClient(MilvusClientV2 milvusClient){
+
+    public void closeClient(MilvusClientV2 milvusClient) {
         try {
             milvusClient.close();
-        }catch (Exception e){
+        } catch (Exception e) {
+        }
+    }
+
+    public void closeQueryIterator(QueryIterator queryIterator) {
+        try {
+            queryIterator.close();
+        } catch (Exception e) {
         }
     }
 
@@ -80,25 +95,12 @@ public class MilvusProxy {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     public List<String> getAllDbs() {
         MilvusClientV2 milvusClient = getMilvusClient("default");
         List<String> databaseNames = milvusClient.listDatabases().getDatabaseNames();
         milvusClient.close();
         return databaseNames;
     }
-
 
 
     public boolean hasCollection(String dbName, String collectionName) {

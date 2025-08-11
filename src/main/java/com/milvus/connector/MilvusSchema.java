@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 public class MilvusSchema extends AbstractSchema {
     private final MilvusProxy milvusProxy;
 
-    public MilvusSchema(String uri, String user, String password, String db, int timeoutMs, boolean useSSL) {
-        this.milvusProxy =  new MilvusProxy(uri, user, password, db, timeoutMs, useSSL);
+    public MilvusSchema(String uri, String user, String password, String db, int timeoutMs, boolean useSSL, int batchSize) {
+        this.milvusProxy = new MilvusProxy(uri, user, password, db, timeoutMs, useSSL, batchSize);
     }
 
     @Override

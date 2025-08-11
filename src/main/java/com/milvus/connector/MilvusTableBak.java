@@ -269,7 +269,7 @@ public class MilvusTableBak extends AbstractTable
             return new AbstractEnumerable<Object[]>() {
                 @Override
                 public Enumerator<Object[]> enumerator() {
-                    return new MilvusEnumerator(queryIterator, fieldNames, fieldTypes, milvusSchema, milvusClient);
+                    return new MilvusEnumeratorBak(queryIterator, fieldNames, fieldTypes, milvusSchema, milvusClient);
                 }
             };
         } else {

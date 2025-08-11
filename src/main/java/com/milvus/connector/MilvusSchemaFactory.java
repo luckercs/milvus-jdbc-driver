@@ -17,7 +17,8 @@ public class MilvusSchemaFactory implements SchemaFactory {
                 ((String) operand.getOrDefault(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord))).trim(),
                 ((String) operand.getOrDefault(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB))).trim(),
                 (Integer) operand.getOrDefault(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.TimeOutMs)),
-                (Boolean) operand.getOrDefault(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL))
+                (Boolean) operand.getOrDefault(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL)),
+                (Integer) operand.getOrDefault(MilvusSchemaOptions.BatchSize, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.BatchSize))
         );
     }
 }
