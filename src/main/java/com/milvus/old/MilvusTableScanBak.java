@@ -1,5 +1,6 @@
-package com.milvus.connector;
+package com.milvus.old;
 
+import com.milvus.connector.MilvusTable;
 import org.apache.calcite.adapter.enumerable.*;
 import org.apache.calcite.linq4j.tree.Blocks;
 import org.apache.calcite.linq4j.tree.Expressions;

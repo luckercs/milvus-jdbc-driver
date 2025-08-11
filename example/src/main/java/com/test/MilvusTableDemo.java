@@ -17,7 +17,7 @@ import io.milvus.v2.service.vector.response.InsertResp;
 
 import java.util.*;
 
-public class MilvusTable {
+public class MilvusTableDemo {
     private static final String COLLECTION_NAME = "milvus_table_1";
     private static final Integer VECTOR_DIM = 128;
     private static final Integer INSERT_NUM = 3200;
@@ -204,9 +204,9 @@ public class MilvusTable {
             row.add("f10_json", metadata);
 
             row.add("f11_floatvector", gson.toJsonTree(CommonUtils.generateFloatVector(VECTOR_DIM)));
-            row.add("f12_binaryvector", gson.toJsonTree(CommonUtils.generateBinaryVector(VECTOR_DIM)));
-            row.add("f13_float16vector", gson.toJsonTree(CommonUtils.generateFloat16Vector(VECTOR_DIM, false)));
-            row.add("f14_bfloat16vector", gson.toJsonTree(CommonUtils.generateFloat16Vector(VECTOR_DIM, true)));
+            row.add("f12_binaryvector", gson.toJsonTree(CommonUtils.generateBinaryVector(VECTOR_DIM).array()));
+            row.add("f13_float16vector", gson.toJsonTree(CommonUtils.generateFloat16Vector(VECTOR_DIM, false).array()));
+            row.add("f14_bfloat16vector", gson.toJsonTree(CommonUtils.generateFloat16Vector(VECTOR_DIM, true).array()));
             row.add("f15_sparsefloatvector", gson.toJsonTree(CommonUtils.generateSparseVector()));
             rows.add(row);
         }

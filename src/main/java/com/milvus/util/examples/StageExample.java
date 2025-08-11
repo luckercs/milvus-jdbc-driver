@@ -18,9 +18,9 @@
  */
 package com.milvus.util.examples;
 
-import io.milvus.bulkwriter.StageOperation;
-import io.milvus.bulkwriter.StageOperationParam;
-import io.milvus.bulkwriter.model.StageUploadResult;
+//import io.milvus.bulkwriter.StageOperation;
+//import io.milvus.bulkwriter.StageOperationParam;
+//import io.milvus.bulkwriter.model.StageUploadResult;
 
 
 /**
@@ -47,20 +47,20 @@ public class StageExample {
     public static final String STAGE_NAME = "_stage_name_for_project_";
     public static final String PATH = "_path_for_stage";
 
-    public static void main(String[] args) throws Exception {
-        uploadFileToStage();
-    }
+//    public static void main(String[] args) throws Exception {
+//        uploadFileToStage();
+//    }
 
     /**
      * If you want to upload file to stage, and then use cloud interface merge the data to collection
      */
-    private static void uploadFileToStage() throws Exception {
-        StageOperationParam stageOperationParam = StageOperationParam.newBuilder()
-                .withCloudEndpoint(CLOUD_ENDPOINT).withApiKey(API_KEY)
-                .withStageName(STAGE_NAME).withPath(PATH)
-                .build();
-        StageOperation stageOperation = new StageOperation(stageOperationParam);
-        StageUploadResult result = stageOperation.uploadFileToStage(LOCAL_DIR_OR_FILE_PATH);
-        System.out.println("\nuploadFileToStage results: " + result);
-    }
+//    private static void uploadFileToStage() throws Exception {
+//        StageOperationParam stageOperationParam = StageOperationParam.newBuilder()
+//                .withCloudEndpoint(CLOUD_ENDPOINT).withApiKey(API_KEY)
+//                .withStageName(STAGE_NAME).withPath(PATH)
+//                .build();
+//        StageOperation stageOperation = new StageOperation(stageOperationParam);
+//        StageUploadResult result = stageOperation.uploadFileToStage(LOCAL_DIR_OR_FILE_PATH);
+//        System.out.println("\nuploadFileToStage results: " + result);
+//    }
 }

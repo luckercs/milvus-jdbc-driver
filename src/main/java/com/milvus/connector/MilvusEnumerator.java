@@ -1,5 +1,6 @@
 package com.milvus.connector;
 
+import com.google.gson.JsonObject;
 import io.milvus.orm.iterator.QueryIterator;
 import io.milvus.response.QueryResultsWrapper;
 import io.milvus.v2.client.MilvusClientV2;
@@ -23,7 +24,7 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     private Object[] currentRow;
     private List<QueryResultsWrapper.RowRecord> currentPage;
-    private int currentRowIndex = 0;
+    private int currentRowIndex;
 
     public MilvusEnumerator(MilvusTable milvusTable) {
         this.milvusTable = milvusTable;
@@ -84,10 +85,10 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
                     resList.add((Boolean) value);
                     break;
                 case Int8:
-                    resList.add((Byte) value);
+                    resList.add(((Integer) value).byteValue());
                     break;
                 case Int16:
-                    resList.add((Short) value);
+                    resList.add(((Integer) value).shortValue());
                     break;
                 case Int32:
                     resList.add((Integer) value);
@@ -108,25 +109,25 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
                     resList.add((String) value);
                     break;
                 case JSON:
-                    resList.add((String) value);
+                    resList.add(((JsonObject) value).toString());
                     break;
                 case Array:
-                    resList.add((String) value);
+                    resList.add(((List) value).toArray());
                     break;
                 case BinaryVector:
-                    resList.add((byte[]) value);
+                    resList.add(((List) value).toArray());
                     break;
                 case FloatVector:
-                    resList.add((float[]) value);
+                    resList.add(((List) value).toArray());
                     break;
                 case Float16Vector:
-                    resList.add((float[]) value);
+                    resList.add(((List) value).toArray());
                     break;
                 case BFloat16Vector:
-                    resList.add((float[]) value);
+                    resList.add(((List) value).toArray());
                     break;
                 case SparseFloatVector:
-                    resList.add((float[]) value);
+                    resList.add(((List) value).toArray());
                     break;
                 default:
                     throw new RuntimeException("Unsupported data type: " + fieldSchema.getDataType());

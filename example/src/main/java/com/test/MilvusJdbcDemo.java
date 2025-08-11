@@ -6,7 +6,6 @@ import org.apache.calcite.jdbc.CalcitePrepare;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
-import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.server.CalciteServerStatement;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParser;
@@ -40,7 +39,7 @@ public class MilvusJdbcDemo {
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
 //        String sql = "SHOW tables";
-        String sql = "select * from milvus.test";
+        String sql = "select * from milvus.milvus_table_1";
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
     }

@@ -213,7 +213,7 @@ public class HybridSearchExample {
         HybridSearchReq hybridSearchReq = HybridSearchReq.builder()
                 .collectionName(COLLECTION_NAME)
                 .searchRequests(searchRequests)
-                .ranker(WeightedRanker.builder().weights(Arrays.asList(0.2f, 0.5f, 0.6f)).build())
+                .ranker(new WeightedRanker(Arrays.asList(0.2f, 0.5f, 0.6f)))
                 .limit(5)
                 .consistencyLevel(ConsistencyLevel.BOUNDED)
                 .build();
@@ -235,13 +235,13 @@ public class HybridSearchExample {
         System.out.println("Collection dropped");
     }
 
-    public static void main(String[] args) {
-        io.milvus.v2.HybridSearchExample example = new io.milvus.v2.HybridSearchExample();
-        example.createCollection();
-        example.insertData();
-        example.hybridSearch();
-        example.dropCollection();
-
-        client.close();
-    }
+//    public static void main(String[] args) {
+//        io.milvus.v2.HybridSearchExample example = new io.milvus.v2.HybridSearchExample();
+//        example.createCollection();
+//        example.insertData();
+//        example.hybridSearch();
+//        example.dropCollection();
+//
+//        client.close();
+//    }
 }

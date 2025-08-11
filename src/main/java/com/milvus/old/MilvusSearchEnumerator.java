@@ -1,6 +1,7 @@
-package com.milvus.connector;
+package com.milvus.old;
 
-import com.alibaba.fastjson.JSONObject;
+//import com.alibaba.fastjson.JSONObject;
+import com.milvus.connector.MilvusSchema;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.grpc.DataType;
 import io.milvus.response.QueryResultsWrapper;
@@ -78,7 +79,7 @@ class MilvusSearchEnumerator<E> implements Enumerator<E> {
 
     @Override
     public void close() {
-        milvusSchema.closeMilvusClient(milvusClient);
+//        milvusSchema.closeMilvusClient(milvusClient);
     }
 
     private Object convert(Object value, DataType dataType) {
@@ -104,7 +105,7 @@ class MilvusSearchEnumerator<E> implements Enumerator<E> {
             case Array:
                 return ((List<E>) value).toArray();
             case JSON:
-                return (JSONObject) value;
+//                return (JSONObject) value;
             case BinaryVector:
                 return  ((ByteBuffer) value).array();
             case FloatVector:

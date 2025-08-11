@@ -1,7 +1,5 @@
 package com.milvus.connector;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.milvus.util.MilvusProxy;
 import io.milvus.v2.common.DataType;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
@@ -110,10 +108,10 @@ public class MilvusTable extends AbstractTable {
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
                     break;
                 case Float16Vector:  // [0.5f, 1.2f, 3.7f]   java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
-                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.SMALLINT), -1));
+                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
                 case BFloat16Vector:  // [1.0f, 2.0f, 3.0f, 4.0f, 5.0f] java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
-                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.SMALLINT), -1));
+                    fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
                 case SparseFloatVector:  // {(1, 0.5), (4, 1.2), (7, 2.3)}  SortedMap<Long, Float>
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createMapType(relDataTypeFactory.createSqlType(SqlTypeName.BIGINT), relDataTypeFactory.createSqlType(SqlTypeName.FLOAT)));
