@@ -6,8 +6,29 @@ milvus-jdbc驱动程序, 支持sql形式查询milvus
 - jdbc-com.server
 - jdbc-client
 
+## (2) data-struct
 
-## (2) Thanks
+| milvus            | jdbc             | note   | 
+|-------------------|------------------|--------|
+| Bool              | BOOLEAN          |        |
+| Int8              | TINYINT          |        | 
+| Int16             | SMALLINT         |        |
+| Int32             | INTEGER          |        |
+| Int64             | BIGINT           |        |
+| Float             | FLOAT            |        |
+| Double            | DOUBLE           |        |
+| String            | VARCHAR          |        |
+| VarChar           | VARCHAR          |        |
+| Array             | Array            |        |
+| JSON              | VARCHAR          |        |
+| BinaryVector      | Array[TINYINT]   | byte[] |
+| FloatVector       | Array[FLOAT]     |        |
+| Float16Vector     | Array[TINYINT]   | byte[] |
+| BFloat16Vector    | Array[TINYINT]   | byte[] |
+| SparseFloatVector | Map<Long, Float> |        |
+
+
+## (3) Thanks
 
 如果这个项目对你有帮助，欢迎扫码打赏！
 

@@ -38,10 +38,13 @@ public class MilvusJdbcDemo {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
-//        String sql = "SHOW tables";
-        String sql = "select * from milvus.milvus_table_1";
+//        String sql = "SHOW tables";   // 表查询
+//        String sql = "select * from milvus.milvus_table_1";  // 全量查询
+//        String sql = "select * from milvus.milvus_table_1 where id>5 and f8_varchar in ('red', 'green', 'blue') and f2_int8=93  limit 11";
+        String sql = "select * from milvus.milvus_table_1 where f2_int8<93 and f3_int16>0 limit 11";  // 支持下推
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
+        printResultSet(resultSet);
     }
 
     public static void printResultSet(ResultSet resultSet) throws Exception {

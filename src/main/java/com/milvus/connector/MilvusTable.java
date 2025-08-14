@@ -9,15 +9,11 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 
 public class MilvusTable extends AbstractTable {
-    private static final Logger LOG = LoggerFactory.getLogger(MilvusTable.class);
-
     protected final MilvusProxy milvusProxy;
     protected final String dbName;
     protected final String collectionName;
@@ -101,26 +97,25 @@ public class MilvusTable extends AbstractTable {
                 case JSON:
                     fieldInfoBuilder.add(fieldName, SqlTypeName.VARCHAR);
                     break;
-                case BinaryVector:    // [0,1,0,1,0,0]    ByteBuffer   [转为字节数组]
+                case BinaryVector:
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
-                case FloatVector:    // [0.123, 2.345, -3.456, 4.567]
+                case FloatVector:
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.FLOAT), -1));
                     break;
-                case Float16Vector:  // [0.5f, 1.2f, 3.7f]   java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
+                case Float16Vector:
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
-                case BFloat16Vector:  // [1.0f, 2.0f, 3.0f, 4.0f, 5.0f] java 不支持，需表示位字节码形式  ByteBuffer  [转为字节数组]
+                case BFloat16Vector:
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createArrayType(relDataTypeFactory.createSqlType(SqlTypeName.TINYINT), -1));
                     break;
-                case SparseFloatVector:  // {(1, 0.5), (4, 1.2), (7, 2.3)}  SortedMap<Long, Float>
+                case SparseFloatVector:
                     fieldInfoBuilder.add(fieldName, relDataTypeFactory.createMapType(relDataTypeFactory.createSqlType(SqlTypeName.BIGINT), relDataTypeFactory.createSqlType(SqlTypeName.FLOAT)));
                     break;
                 default:
                     throw new RuntimeException("Unable to recognize Milvus data type: " + fieldType.toString());
             }
         }
-
         return fieldInfoBuilder.build();
     }
 }
