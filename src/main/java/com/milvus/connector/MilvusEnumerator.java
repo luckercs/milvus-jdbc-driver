@@ -45,8 +45,9 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         if (currentPage == null || currentRowIndex >= currentPage.size()) {
             currentRowIndex = 0;
             List<QueryResultsWrapper.RowRecord> rowRecords = queryIterator.next();
-            LOG.info("milvus queryIterator Current row count: " + rowRecords.size());
+            LOG.info("milvus queryIterator next page rowcount: " + rowRecords.size());
             if (rowRecords.isEmpty()) {
+                close();
                 return false;
             } else {
                 currentPage = rowRecords;
@@ -59,11 +60,13 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     @Override
     public void reset() {
+        LOG.info("milvusClient.queryIterator reset");
         initQueryIteratorReq();
     }
 
     @Override
     public void close() {
+        LOG.info("milvusClient.queryIterator closed");
         milvusTable.milvusProxy.closeQueryIterator(queryIterator);
         milvusTable.milvusProxy.closeClient(milvusClient);
     }
@@ -73,10 +76,13 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         QueryIteratorReq queryIteratorReq = QueryIteratorReq.builder()
                 .databaseName(milvusTable.dbName)
                 .collectionName(milvusTable.collectionName)
-                .outputFields(milvusTable.collectionDesc.getFieldNames())
                 .consistencyLevel(ConsistencyLevel.BOUNDED)
                 .batchSize(milvusTable.milvusProxy.getBatchSize())
+                .outputFields(milvusTable.collectionDesc.getFieldNames())
                 .expr(filterExpr)
+//                .limit()
+//                .offset()
+//                .partitionNames()
                 .build();
         this.queryIterator = milvusClient.queryIterator(queryIteratorReq);
     }
