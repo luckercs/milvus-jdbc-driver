@@ -23,11 +23,11 @@ public class MilvusTranslatableTable extends MilvusTable implements Translatable
         return new MilvusTableScan(toRelContext.getCluster(), relOptTable);
     }
 
-    public Enumerable<Object[]> query(final DataContext root) {
+    public Enumerable<Object[]> query(final DataContext root, MilvusPushDownParam milvusPushDownParam) {
         return new AbstractEnumerable<Object[]>() {
             @Override
             public Enumerator<Object[]> enumerator() {
-                return new MilvusEnumerator<>(MilvusTranslatableTable.this, "");
+                return new MilvusEnumerator<>(MilvusTranslatableTable.this, milvusPushDownParam);
             }
         };
     }

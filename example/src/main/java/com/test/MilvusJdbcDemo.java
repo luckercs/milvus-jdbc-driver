@@ -41,7 +41,16 @@ public class MilvusJdbcDemo {
 //        String sql = "SHOW tables";   // 表查询
 //        String sql = "select * from milvus.milvus_table_1";  // 全量查询
 //        String sql = "select * from milvus.milvus_table_1 where id>5 and f8_varchar in ('red', 'green', 'blue') and f2_int8=93  limit 11";
-        String sql = "select * from milvus.milvus_table_1 where f2_int8<93 and f3_int16>0 limit 11";  // 支持下推
+//        String sql = "select * from milvus.milvus_table_1 where f2_int8<93 and f3_int16>0 limit 11";  // 支持下推
+//        String sql = "select f4_int32, f3_int16 from milvus.milvus_table_1 where f2_int8<93 and f3_int16>0 limit 11";  // 支持下推
+
+//        String sql = "select * from milvus.milvus_table_2 ";  // 支持下推
+
+        String sql = "select f4_int32, f3_int16 from milvus.milvus_table_2 where f2_int8<93 and f3_int16>0 and __partition__='part2' limit 11";  // 支持下推
+
+
+
+//        String sql = "select f3_int16, f4_int32 from milvus.milvus_table_1 limit 11";  // 无法捕获
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         printResultSet(resultSet);

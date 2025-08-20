@@ -22,16 +22,17 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
     private MilvusClientV2 milvusClient;
     private QueryIterator queryIterator;
     private MilvusTable milvusTable;
-    private String filterExpr;
+    private MilvusPushDownParam milvusPushDownParam;
 
     private Object[] currentRow;
     private List<QueryResultsWrapper.RowRecord> currentPage;
     private int currentRowIndex;
 
-    public MilvusEnumerator(MilvusTable milvusTable, String filterExpr) {
+
+    public MilvusEnumerator(MilvusTable milvusTable, MilvusPushDownParam milvusPushDownParam) {
         this.milvusTable = milvusTable;
         this.milvusClient = milvusTable.milvusProxy.getClient();
-        this.filterExpr = filterExpr;
+        this.milvusPushDownParam = milvusPushDownParam;
         initQueryIteratorReq();
     }
 
@@ -72,18 +73,35 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
     }
 
     private void initQueryIteratorReq() {
-        LOG.info("milvusClient.queryIterator, filterExpr: " + filterExpr);
-        QueryIteratorReq queryIteratorReq = QueryIteratorReq.builder()
+        QueryIteratorReq.QueryIteratorReqBuilder<?, ?> queryIteratorReqBuilder = QueryIteratorReq.builder()
                 .databaseName(milvusTable.dbName)
                 .collectionName(milvusTable.collectionName)
                 .consistencyLevel(ConsistencyLevel.BOUNDED)
-                .batchSize(milvusTable.milvusProxy.getBatchSize())
-                .outputFields(milvusTable.collectionDesc.getFieldNames())
-                .expr(filterExpr)
-//                .limit()
-//                .offset()
-//                .partitionNames()
-                .build();
+                .batchSize(milvusTable.milvusProxy.getBatchSize());
+
+        if (milvusPushDownParam != null && milvusPushDownParam.getFilterExpr() != null && !milvusPushDownParam.getFilterExpr().equals("")) {
+            queryIteratorReqBuilder.expr(milvusPushDownParam.getFilterExpr());
+            LOG.info("milvus query PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getPartitionNames() != null && !milvusPushDownParam.getPartitionNames().isEmpty()) {
+            queryIteratorReqBuilder.partitionNames(milvusPushDownParam.getPartitionNames());
+            LOG.info("milvus query PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getLimit() != null && milvusPushDownParam.getLimit() > 0) {
+            queryIteratorReqBuilder.limit(milvusPushDownParam.getLimit());
+            LOG.info("milvus query PushDownParam limit: " + milvusPushDownParam.getLimit());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getOffset() != null && milvusPushDownParam.getOffset() > 0) {
+            queryIteratorReqBuilder.offset(milvusPushDownParam.getOffset());
+            LOG.info("milvus query PushDownParam offset: " + milvusPushDownParam.getOffset());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getOutputFields() != null && !milvusPushDownParam.getOutputFields().isEmpty()) {
+            queryIteratorReqBuilder.outputFields(milvusPushDownParam.getOutputFields());
+            LOG.info("milvus query PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
+        } else {
+            queryIteratorReqBuilder.outputFields(milvusTable.collectionDesc.getFieldNames());
+        }
+        QueryIteratorReq queryIteratorReq = queryIteratorReqBuilder.build();
         this.queryIterator = milvusClient.queryIterator(queryIteratorReq);
     }
 
@@ -155,6 +173,8 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
             }
         }
+        resList.add("");
+        resList.add(0f);
         return resList.toArray();
     }
 }

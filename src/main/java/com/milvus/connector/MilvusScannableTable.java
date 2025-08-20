@@ -21,7 +21,7 @@ public class MilvusScannableTable extends MilvusTable implements ScannableTable 
 
             @Override
             public Enumerator<@Nullable Object[]> enumerator() {
-                return new MilvusEnumerator<>(MilvusScannableTable.this, "");
+                return new MilvusEnumerator<>(MilvusScannableTable.this, new MilvusPushDownParam());
             }
         };
     }

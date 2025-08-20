@@ -1,45 +1,56 @@
 package com.milvus.connector;
 
-import com.milvus.util.MilvusProxy;
-import io.milvus.v2.service.collection.response.DescribeCollectionResp;
-import org.apache.calcite.DataContext;
-import org.apache.calcite.linq4j.AbstractEnumerable;
-import org.apache.calcite.linq4j.Enumerable;
-import org.apache.calcite.linq4j.Enumerator;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.schema.FilterableTable;
+import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.calcite.plan.RelRule;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rex.*;
 import org.apache.calcite.sql.SqlKind;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.immutables.value.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MilvusFilterableTable extends MilvusTable implements FilterableTable {
-
-    public MilvusFilterableTable(MilvusProxy milvusProxy, String collectionName) {
-        super(milvusProxy, collectionName);
+@Value.Enclosing
+public class MilvusFilterTableScanRule extends RelRule<MilvusFilterTableScanRule.Config> {
+    protected MilvusFilterTableScanRule(Config config) {
+        super(config);
     }
 
     @Override
-    public Enumerable<@Nullable Object[]> scan(DataContext dataContext, List<RexNode> filters) {
-        StringBuilder filterExprBuilder = new StringBuilder();
-        filters.removeIf(filter -> addFilter(filter, filterExprBuilder, collectionDesc));
-        MilvusPushDownParam milvusPushDownParam = new MilvusPushDownParam();
-        milvusPushDownParam.setFilterExpr(filterExprBuilder.toString());
-        return new AbstractEnumerable<@Nullable Object[]>() {
-            @Override
-            public Enumerator<@Nullable Object[]> enumerator() {
-                return new MilvusEnumerator<>(MilvusFilterableTable.this, milvusPushDownParam);
-            }
-        };
+    public void onMatch(RelOptRuleCall relOptRuleCall) {
+        LogicalFilter filter = (LogicalFilter) relOptRuleCall.rels[0];
+        MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rel(1);
+
+        StringBuilder exprBuilder = new StringBuilder();
+        boolean res = addFilter(filter.getCondition(), exprBuilder, milvusTableScan.getMilvusTable());
+        ArrayList<String> partitions = new ArrayList<>();
+        boolean withPartition = parserPartitions(filter.getCondition(), partitions, milvusTableScan.getMilvusTable());
+        if (withPartition) {
+            milvusTableScan.getPushDownParam().setPartitionNames(partitions);
+        }
+        if (res) {
+            milvusTableScan.getPushDownParam().setFilterExpr(exprBuilder.toString());
+            relOptRuleCall.transformTo(milvusTableScan);
+        }
     }
 
-    private static boolean addFilter(RexNode filter, StringBuilder filterExprBuilder, DescribeCollectionResp collectionDesc) {
+
+    @Value.Immutable(singleton = false)
+    public interface Config extends RelRule.Config {
+        Config DEFAULT = ImmutableMilvusFilterTableScanRule.Config.builder().build()
+                .withOperandSupplier(filter -> filter.operand(LogicalFilter.class)
+                        .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs()));
+
+        @Override
+        default MilvusFilterTableScanRule toRule() {
+            return new MilvusFilterTableScanRule(this);
+        }
+    }
+
+    private static boolean addFilter(RexNode filter, StringBuilder filterExprBuilder, MilvusTable milvusTable) {
         if (filter.isA(SqlKind.AND)) {
             for (RexNode subFilter : ((RexCall) filter).getOperands()) {
-                boolean res = addFilter(subFilter, filterExprBuilder, collectionDesc);
+                boolean res = addFilter(subFilter, filterExprBuilder, milvusTable);
                 if (!res) {
                     return false;
                 }
@@ -54,14 +65,16 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
-                if (!filterExprBuilder.toString().equals("")) {
-                    filterExprBuilder.append(" AND ");
+                if (index < milvusTable.collectionDesc.getFieldNames().size()) {
+                    if (!filterExprBuilder.toString().equals("")) {
+                        filterExprBuilder.append(" AND ");
+                    }
+                    filterExprBuilder.append(fieldName);
+                    filterExprBuilder.append("==");
+                    filterExprBuilder.append(value);
                 }
-                filterExprBuilder.append(fieldName);
-                filterExprBuilder.append("==");
-                filterExprBuilder.append(value);
                 return true;
             }
         } else if (filter.isA(SqlKind.GREATER_THAN)) {
@@ -73,7 +86,7 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
                 if (!filterExprBuilder.toString().equals("")) {
                     filterExprBuilder.append(" AND ");
@@ -92,7 +105,7 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
                 if (!filterExprBuilder.toString().equals("")) {
                     filterExprBuilder.append(" AND ");
@@ -111,7 +124,7 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
                 if (!filterExprBuilder.toString().equals("")) {
                     filterExprBuilder.append(" AND ");
@@ -130,7 +143,7 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
                 if (!filterExprBuilder.toString().equals("")) {
                     filterExprBuilder.append(" AND ");
@@ -149,7 +162,7 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
             RexNode right = call.getOperands().get(1);
             if (left instanceof RexInputRef && right instanceof RexLiteral) {
                 int index = ((RexInputRef) left).getIndex();
-                String fieldName = collectionDesc.getCollectionSchema().getFieldSchemaList().get(index).getName();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
                 String value = ((RexLiteral) right).getValue2().toString();
                 if (!filterExprBuilder.toString().equals("")) {
                     filterExprBuilder.append(" AND ");
@@ -171,6 +184,36 @@ public class MilvusFilterableTable extends MilvusTable implements FilterableTabl
          *        AND OR NOT
          *        is null  is not null
          * */
+        return false;
+    }
+
+    private static boolean parserPartitions(RexNode filter, List<String> partitions, MilvusTable milvusTable) {
+        if (filter.isA(SqlKind.AND)) {
+            for (RexNode subFilter : ((RexCall) filter).getOperands()) {
+                boolean res = parserPartitions(subFilter, partitions, milvusTable);
+                if (res) {
+                    return true;
+                }
+            }
+            return false;
+        } else if (filter.isA(SqlKind.EQUALS)) {
+            RexCall call = (RexCall) filter;
+            RexNode left = call.getOperands().get(0);
+            if (left.isA(SqlKind.CAST)) {
+                left = ((RexCall) left).operands.get(0);
+            }
+            RexNode right = call.getOperands().get(1);
+            if (left instanceof RexInputRef && right instanceof RexLiteral) {
+                int index = ((RexInputRef) left).getIndex();
+                String fieldName = milvusTable.relDataType.getFieldNames().get(index);
+                String value = ((RexLiteral) right).getValue2().toString();
+                if (fieldName.equals(MilvusTable.metaFieldPartition)) {
+                    partitions.add(value);
+                    return true;
+                }
+            }
+        }
+        // todo: support partitions list
         return false;
     }
 }
