@@ -1,24 +1,14 @@
 package com.milvus.jdbc;
 
-import com.milvus.functions.AnnFunction;
-import com.milvus.functions.AnnFunctionImpl;
 import com.milvus.functions.FeatureGen;
 import com.milvus.connector.MilvusSchema;
 import com.milvus.options.MilvusSchemaOptions;
-import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.calcite.jdbc.CalciteJdbc41Factory;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.impl.ScalarFunctionImpl;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.calcite.sql.util.ChainedSqlOperatorTable;
-import org.apache.calcite.sql.util.ListSqlOperatorTable;
-import org.apache.calcite.tools.FrameworkConfig;
-import org.apache.calcite.tools.Frameworks;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
 
@@ -56,7 +46,6 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         }
 
         // add schemas
-//        SchemaPlus rootSchema = Frameworks.createRootSchema(true);
         Properties milvusProps = filterDataSourceProps(info, DATASOURCE_MILVUS);
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
@@ -71,24 +60,8 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
                 )
         );
 
-//        // add functions
-//        ListSqlOperatorTable customFunctions = new ListSqlOperatorTable();
-//        customFunctions.add(new AnnFunction());
-//        ChainedSqlOperatorTable operatorTable = new ChainedSqlOperatorTable(Arrays.asList(
-//                SqlStdOperatorTable.instance(),
-//                customFunctions
-//        ));
-
-//        FrameworkConfig frameworkConfig = Frameworks.newConfigBuilder().defaultSchema(rootSchema).operatorTable(operatorTable).build();
-//        info.put(FrameworkConfig.class.getName(), frameworkConfig);
-//        CalciteJdbc41Factory factory = new CalciteJdbc41Factory();
-//        AvaticaConnection avaticaConnection = factory.newConnection(this, factory, url, info);
-//        this.handler.onConnectionInit(avaticaConnection);
-//        CalciteConnection calciteConnection = avaticaConnection.unwrap(CalciteConnection.class);
-
         rootSchema.add("gen_vector", ScalarFunctionImpl.create(FeatureGen.class, "gen_random_float_vectors_str"));
-        rootSchema.add("ann", ScalarFunctionImpl.create(AnnFunctionImpl.class, "processFloatArrays"));
-        return calciteConnection;
+        return connection;
     }
 
     private void parseMilvusUrl(String url, Properties props) {
