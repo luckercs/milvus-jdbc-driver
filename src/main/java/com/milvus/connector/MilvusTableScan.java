@@ -50,6 +50,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     public void register(RelOptPlanner planner) {
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.SORT_RULE);
+        planner.addRule(MilvusRules.ANN_RULE);
         // super.register(planner);
     }
 

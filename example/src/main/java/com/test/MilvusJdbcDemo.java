@@ -46,8 +46,10 @@ public class MilvusJdbcDemo {
 
 //        String sql = "select * from milvus.milvus_table_2 ";  // 支持下推
 
-        String sql = "select f4_int32, f3_int16 from milvus.milvus_table_2 where f2_int8<93 and f3_int16>0 and __partition__='part2' limit 11";  // 支持下推
+//        String sql = "select f4_int32, f3_int16 from milvus.milvus_table_2 where f2_int8<93 and f3_int16>0 and __partition__='part2' limit 11";  // 支持下推
 
+
+        String sql ="select id, ann(f11_floatvector, ARRAY[0.1,0.2,0.3]) AS distance from milvus.milvus_table_2 where f2_int8<93 and f3_int16>0 order by distance limit 11";
 
 
 //        String sql = "select f3_int16, f4_int32 from milvus.milvus_table_1 limit 11";  // 无法捕获
