@@ -7,7 +7,6 @@ import java.util.Random;
 
 public class FeatureGen {
 
-
     private List<Float> gen_one_random_float_vector_list(int dim) {
         Random random = new Random();
         List<Float> vec = new ArrayList<>();

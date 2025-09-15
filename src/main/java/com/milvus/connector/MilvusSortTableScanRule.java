@@ -39,6 +39,15 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
     }
 
 
+    /**
+     * LogicalSort
+     *   MilvusTableScan
+     *
+     * ==>
+     *
+     * MilvusTableScan
+     *
+     * */
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
 

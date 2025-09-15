@@ -4,6 +4,7 @@ import com.milvus.util.MilvusProxy;
 import io.milvus.v2.common.DataType;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.response.DescribeCollectionResp;
+import io.milvus.v2.service.index.response.DescribeIndexResp;
 import org.apache.calcite.linq4j.*;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -18,6 +19,7 @@ public class MilvusTable extends AbstractTable {
     protected final String dbName;
     protected final String collectionName;
     protected DescribeCollectionResp collectionDesc;
+    protected Map<String, DescribeIndexResp> indexDesc = new HashMap<>();
     protected RelDataType relDataType;
     public static final String metaFieldPartition = "__partition__";
     public static final String metaFieldScore = "__score__";
@@ -38,6 +40,7 @@ public class MilvusTable extends AbstractTable {
         for (CreateCollectionReq.FieldSchema fieldSchema : collectionDesc.getCollectionSchema().getFieldSchemaList()) {
             String fieldName = fieldSchema.getName();
             DataType fieldType = fieldSchema.getDataType();
+            this.indexDesc.put(fieldName, milvusProxy.getIndexDesc(collectionName, fieldName));
             switch (fieldType) {
                 case Bool:
                     fieldInfoBuilder.add(fieldName, SqlTypeName.BOOLEAN);

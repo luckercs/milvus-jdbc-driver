@@ -1,6 +1,7 @@
 package com.milvus.util;
 
 import io.milvus.orm.iterator.QueryIterator;
+import io.milvus.orm.iterator.SearchIterator;
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.IndexParam;
@@ -80,6 +81,13 @@ public class MilvusProxy {
         }
     }
 
+    public void closeSearchIterator(SearchIterator searchIterator) {
+        try {
+            searchIterator.close();
+        } catch (Exception e) {
+        }
+    }
+
     public List<String> getAllCollections() {
         MilvusClientV2 milvusClient = getClient();
         List<String> collectionNames = milvusClient.listCollections().getCollectionNames();
@@ -93,6 +101,14 @@ public class MilvusProxy {
         closeClient(milvusClient);
         return describeCollectionResp;
     }
+
+    public DescribeIndexResp getIndexDesc(String collectionName, String fieldName) {
+        MilvusClientV2 milvusClient = getClient();
+        DescribeIndexResp describeIndexResp = milvusClient.describeIndex(DescribeIndexReq.builder().databaseName(db).collectionName(collectionName).fieldName(fieldName).build());
+        closeClient(milvusClient);
+        return describeIndexResp;
+    }
+
 
 
 //    public List<String> getAllDbs() {

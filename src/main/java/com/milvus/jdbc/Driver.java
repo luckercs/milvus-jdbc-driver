@@ -1,5 +1,6 @@
 package com.milvus.jdbc;
 
+import com.milvus.functions.Ann;
 import com.milvus.functions.FeatureGen;
 import com.milvus.connector.MilvusSchema;
 import com.milvus.options.MilvusSchemaOptions;
@@ -61,6 +62,7 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         );
 
         rootSchema.add("gen_vector", ScalarFunctionImpl.create(FeatureGen.class, "gen_random_float_vectors_str"));
+        rootSchema.add("ann", ScalarFunctionImpl.create(Ann.class, "ann"));
         return connection;
     }
 

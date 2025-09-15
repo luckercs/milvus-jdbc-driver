@@ -8,4 +8,7 @@ public abstract class MilvusRules {
 
     public static final MilvusSortTableScanRule SORT_RULE =
             MilvusSortTableScanRule.Config.DEFAULT.toRule();
+
+    public static final MilvusProjectTableScanRule PROJECT_RULE =
+            MilvusProjectTableScanRule.Config.DEFAULT.toRule();
 }

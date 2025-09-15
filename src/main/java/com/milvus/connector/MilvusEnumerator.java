@@ -1,17 +1,24 @@
 package com.milvus.connector;
 
 import io.milvus.orm.iterator.QueryIterator;
+import io.milvus.orm.iterator.SearchIterator;
 import io.milvus.response.QueryResultsWrapper;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.ConsistencyLevel;
+import io.milvus.v2.common.IndexParam;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
+import io.milvus.v2.service.index.response.DescribeIndexResp;
 import io.milvus.v2.service.vector.request.QueryIteratorReq;
+import io.milvus.v2.service.vector.request.SearchIteratorReq;
+import io.milvus.v2.service.vector.request.data.BaseVector;
+import io.milvus.v2.service.vector.request.data.FloatVec;
 import org.apache.calcite.linq4j.Enumerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -21,11 +28,13 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     private MilvusClientV2 milvusClient;
     private QueryIterator queryIterator;
+    private SearchIterator searchIterator;
     private MilvusTable milvusTable;
     private MilvusPushDownParam milvusPushDownParam;
 
     private Object[] currentRow;
     private List<QueryResultsWrapper.RowRecord> currentPage;
+    private List<QueryResultsWrapper.RowRecord> currentPageSearch;
     private int currentRowIndex;
 
 
@@ -33,7 +42,11 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         this.milvusTable = milvusTable;
         this.milvusClient = milvusTable.milvusProxy.getClient();
         this.milvusPushDownParam = milvusPushDownParam;
-        initQueryIteratorReq();
+        if (milvusPushDownParam.isSearchQuery()) {
+            initSearchIteratorReq();
+        } else {
+            initQueryIteratorReq();
+        }
     }
 
     @Override
@@ -45,7 +58,12 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
     public boolean moveNext() {
         if (currentPage == null || currentRowIndex >= currentPage.size()) {
             currentRowIndex = 0;
-            List<QueryResultsWrapper.RowRecord> rowRecords = queryIterator.next();
+            List<QueryResultsWrapper.RowRecord> rowRecords;
+            if (milvusPushDownParam.isSearchQuery()) {
+                rowRecords = searchIterator.next();
+            } else {
+                rowRecords = queryIterator.next();
+            }
             LOG.info("milvus queryIterator next page rowcount: " + rowRecords.size());
             if (rowRecords.isEmpty()) {
                 close();
@@ -62,13 +80,21 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
     @Override
     public void reset() {
         LOG.info("milvusClient.queryIterator reset");
-        initQueryIteratorReq();
+        if (milvusPushDownParam.isSearchQuery()) {
+            initSearchIteratorReq();
+        } else {
+            initQueryIteratorReq();
+        }
     }
 
     @Override
     public void close() {
         LOG.info("milvusClient.queryIterator closed");
-        milvusTable.milvusProxy.closeQueryIterator(queryIterator);
+        if (milvusPushDownParam.isSearchQuery()) {
+            milvusTable.milvusProxy.closeSearchIterator(searchIterator);
+        } else {
+            milvusTable.milvusProxy.closeQueryIterator(queryIterator);
+        }
         milvusTable.milvusProxy.closeClient(milvusClient);
     }
 
@@ -105,6 +131,42 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         this.queryIterator = milvusClient.queryIterator(queryIteratorReq);
     }
 
+    private void initSearchIteratorReq() {
+        List<BaseVector> queryVectors = Collections.singletonList(new FloatVec(stringToFloatList(milvusPushDownParam.getSearchVec())));
+        IndexParam.MetricType metricType = milvusTable.indexDesc.get(milvusPushDownParam.getSearchVecColName()).getIndexDescriptions().get(0).getMetricType();
+        SearchIteratorReq.SearchIteratorReqBuilder<?, ?> searchIteratorReqBuilder = SearchIteratorReq.builder()
+                .databaseName(milvusTable.dbName)
+                .collectionName(milvusTable.collectionName)
+                .consistencyLevel(ConsistencyLevel.BOUNDED)
+                .vectorFieldName(milvusPushDownParam.getSearchVecColName())
+                .metricType(metricType)
+                .vectors(queryVectors)
+                .batchSize(milvusTable.milvusProxy.getBatchSize());
+
+        if (milvusPushDownParam != null && milvusPushDownParam.getFilterExpr() != null && !milvusPushDownParam.getFilterExpr().equals("")) {
+            searchIteratorReqBuilder.expr(milvusPushDownParam.getFilterExpr());
+            LOG.info("milvus search PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getPartitionNames() != null && !milvusPushDownParam.getPartitionNames().isEmpty()) {
+            searchIteratorReqBuilder.partitionNames(milvusPushDownParam.getPartitionNames());
+            LOG.info("milvus search PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getLimit() != null && milvusPushDownParam.getLimit() > 0) {
+            searchIteratorReqBuilder.limit(milvusPushDownParam.getLimit());
+            LOG.info("milvus search PushDownParam limit: " + milvusPushDownParam.getLimit());
+        }
+        if (milvusPushDownParam != null && milvusPushDownParam.getOutputFields() != null && !milvusPushDownParam.getOutputFields().isEmpty()) {
+            searchIteratorReqBuilder.outputFields(milvusPushDownParam.getOutputFields());
+            LOG.info("milvus search PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
+        } else {
+            searchIteratorReqBuilder.outputFields(milvusTable.collectionDesc.getFieldNames());
+        }
+        LOG.info("milvus search queryVector=" + queryVectors.toString());
+        SearchIteratorReq searchIteratorReq = searchIteratorReqBuilder.build();
+        this.searchIterator = milvusClient.searchIterator(searchIteratorReq);
+    }
+
+    // 多了一个score字段
     private Object[] convertRowRecord(QueryResultsWrapper.RowRecord rowRecord) {
         List<CreateCollectionReq.FieldSchema> fieldSchemaList = milvusTable.collectionDesc.getCollectionSchema().getFieldSchemaList();
         ArrayList<Object> resList = new ArrayList<>();
@@ -173,9 +235,38 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
             }
         }
-        resList.add("");
-        resList.add(0f);
+        resList.add("");   // add default partitionName
+        resList.add(0f);   // add default score
         return resList.toArray();
+    }
+
+    public static List<Float> stringToFloatList(String input) {
+        List<Float> floatList = new ArrayList<>();
+        input = input.trim();
+        if (!input.startsWith("[") || !input.endsWith("]")) {
+            throw new IllegalArgumentException("input data format error，eg: [0.1, 0.2, 0.3...]");
+        }
+        String content = input.substring(1, input.length() - 1).trim();
+        if (content.isEmpty()) {
+            return floatList;
+        }
+        String[] elements;
+        if (content.contains(",")) {
+            elements = content.split(",");
+        } else {
+            elements = content.split("\\s+");
+        }
+        for (String element : elements) {
+            String trimmedElement = element.trim();
+            if (!trimmedElement.isEmpty()) {
+                try {
+                    floatList.add(Float.parseFloat(trimmedElement));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(trimmedElement + "can not change to Float", e);
+                }
+            }
+        }
+        return floatList;
     }
 }
 

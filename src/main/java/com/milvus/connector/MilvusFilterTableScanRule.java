@@ -35,6 +35,15 @@ public class MilvusFilterTableScanRule extends RelRule<MilvusFilterTableScanRule
     }
 
 
+    /**
+     * LogicalFilter
+     *   MilvusTableScan
+     *
+     * ==>
+     *
+     * MilvusTableScan
+     *
+     * */
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
         Config DEFAULT = ImmutableMilvusFilterTableScanRule.Config.builder().build()

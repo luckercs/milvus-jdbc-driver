@@ -41,7 +41,10 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
                                 Expressions.constant(milvusPushDownParam.getPartitionNames()),
                                 Expressions.constant(milvusPushDownParam.getLimit()),
                                 Expressions.constant(milvusPushDownParam.getOffset()),
-                                Expressions.constant(milvusPushDownParam.getOutputFields())
+                                Expressions.constant(milvusPushDownParam.getOutputFields()),
+                                Expressions.constant(milvusPushDownParam.isSearchQuery()),
+                                Expressions.constant(milvusPushDownParam.getSearchVecColName()),
+                                Expressions.constant(milvusPushDownParam.getSearchVec())
                                 )
                 )));
     }
@@ -50,6 +53,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     public void register(RelOptPlanner planner) {
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.SORT_RULE);
+        planner.addRule(MilvusRules.PROJECT_RULE);
         // super.register(planner);
     }
 
