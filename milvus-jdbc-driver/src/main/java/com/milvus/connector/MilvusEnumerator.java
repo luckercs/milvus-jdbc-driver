@@ -235,7 +235,7 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         // add default score
         if (rowRecord.contains(MilvusTable.milvusSearchFieldScore)) {
             Object value = rowRecord.get(MilvusTable.milvusSearchFieldScore);
-            resList.add(((Float)value).doubleValue());
+            resList.add(((Float) value).doubleValue());
         } else {
             resList.add(0.0);
         }

@@ -1,4 +1,4 @@
-package com.test;
+package com.table;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -12,15 +12,19 @@ import io.milvus.v2.common.IndexParam;
 import io.milvus.v2.service.collection.request.AddFieldReq;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.request.DropCollectionReq;
+import io.milvus.v2.service.partition.request.CreatePartitionReq;
 import io.milvus.v2.service.vector.request.InsertReq;
 import io.milvus.v2.service.vector.response.InsertResp;
 
 import java.util.*;
 
-public class MilvusTableDemo {
-    private static final String COLLECTION_NAME = "milvus_table_1";
+public class MilvusTableDemoPart {
+    private static final String COLLECTION_NAME = "milvus_table_2";
+    private static final String PARTITION_NAME_1 = "part1";
+    private static final String PARTITION_NAME_2 = "part2";
+    private static final String PARTITION_NAME_3 = "part3";
     private static final Integer VECTOR_DIM = 128;
-    private static final Integer INSERT_NUM = 3200;
+    private static final Integer INSERT_NUM = 240;
 
     public static void main(String[] args) {
         ConnectConfig config = ConnectConfig.builder()
@@ -157,13 +161,35 @@ public class MilvusTableDemo {
         System.out.println("Collection created");
 
 
+        client.createPartition(CreatePartitionReq.builder().collectionName(COLLECTION_NAME).partitionName(PARTITION_NAME_1).build());
+        client.createPartition(CreatePartitionReq.builder().collectionName(COLLECTION_NAME).partitionName(PARTITION_NAME_2).build());
+        client.createPartition(CreatePartitionReq.builder().collectionName(COLLECTION_NAME).partitionName(PARTITION_NAME_3).build());
+
+
         List<JsonObject> rows = genRows(INSERT_NUM);
         InsertResp resp = client.insert(InsertReq.builder()
                 .collectionName(COLLECTION_NAME)
-                .data(rows)
+                .partitionName(PARTITION_NAME_1)
+                .data(rows.subList(0, rows.size()/3))
                 .build());
         List<Object> ids = resp.getPrimaryKeys();
-        System.out.println("Collection insertRows done, insertCount:" + ids.size());
+        System.out.println("Collection insertRows part1 done, insertCount:" + ids.size());
+
+        resp = client.insert(InsertReq.builder()
+                .collectionName(COLLECTION_NAME)
+                .partitionName(PARTITION_NAME_2)
+                .data(rows.subList(rows.size()/3, rows.size()/3*2))
+                .build());
+        ids = resp.getPrimaryKeys();
+        System.out.println("Collection insertRows part2 done, insertCount:" + ids.size());
+
+        resp = client.insert(InsertReq.builder()
+                .collectionName(COLLECTION_NAME)
+                .partitionName(PARTITION_NAME_3)
+                .data(rows.subList(rows.size()/3*2, rows.size()))
+                .build());
+        ids = resp.getPrimaryKeys();
+        System.out.println("Collection insertRows part3 done, insertCount:" + ids.size());
 
         System.out.println("ALL Finished");
     }
@@ -188,7 +214,7 @@ public class MilvusTableDemo {
             List<String> strArray = new ArrayList<>();
             int capacity = random.nextInt(5) + 5;
             for (int k = 0; k < capacity; k++) {
-                intArray.add(i+k);
+                intArray.add(i + k);
                 strArray.add(String.format("string-%d-%d", i, k));
             }
             row.add("f9_array_int32", JsonUtils.toJsonTree(intArray).getAsJsonArray());
@@ -197,7 +223,7 @@ public class MilvusTableDemo {
             JsonObject metadata = new JsonObject();
             metadata.addProperty("path", String.format("\\root/abc/path_%d", i));
             metadata.addProperty("size", i);
-            if (i%7 == 0) {
+            if (i % 7 == 0) {
                 metadata.addProperty("special", true);
             }
             metadata.add("flags", gson.toJsonTree(Arrays.asList(i, i + 1, i + 2)));

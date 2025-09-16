@@ -27,7 +27,6 @@ import java.util.Map;
 
 // demo: https://github.com/milvus-io/milvus-sdk-java/tree/master/examples/src/main/java/io/milvus/v2
 
-
 public class MilvusProxy {
     private final String uri;
     private final String user;
