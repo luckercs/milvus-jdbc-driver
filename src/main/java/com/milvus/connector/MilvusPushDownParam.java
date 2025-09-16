@@ -89,4 +89,18 @@ public class MilvusPushDownParam{
     public void setSearchVec(String searchVec) {
         this.searchVec = searchVec;
     }
+
+    @Override
+    public String toString() {
+        return "MilvusPushDownParam{" +
+                "filterExpr='" + filterExpr + '\'' +
+                ", partitionNames=" + partitionNames +
+                ", limit=" + limit +
+                ", offset=" + offset +
+                ", outputFields=" + outputFields +
+                ", searchQuery=" + searchQuery +
+                ", searchVecColName='" + searchVecColName + '\'' +
+                ", searchVec='" + searchVec + '\'' +
+                '}';
+    }
 }

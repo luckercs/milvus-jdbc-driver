@@ -9,6 +9,7 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.prepare.RelOptTableImpl;
+import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.TableScan;
 
 import static java.util.Objects.requireNonNull;
@@ -51,10 +52,15 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
 
     @Override
     public void register(RelOptPlanner planner) {
+        planner.addRule(MilvusRules.PROJECT_RULE);
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.SORT_RULE);
-        planner.addRule(MilvusRules.PROJECT_RULE);
         // super.register(planner);
     }
 
+
+    @Override
+    public RelWriter explainTerms(RelWriter pw) {
+        return super.explainTerms(pw).item("milvusPushDownParam", milvusPushDownParam.toString());
+    }
 }

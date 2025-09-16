@@ -7,7 +7,6 @@ import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.common.ConsistencyLevel;
 import io.milvus.v2.common.IndexParam;
 import io.milvus.v2.service.collection.request.CreateCollectionReq;
-import io.milvus.v2.service.index.response.DescribeIndexResp;
 import io.milvus.v2.service.vector.request.QueryIteratorReq;
 import io.milvus.v2.service.vector.request.SearchIteratorReq;
 import io.milvus.v2.service.vector.request.data.BaseVector;
@@ -34,7 +33,6 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     private Object[] currentRow;
     private List<QueryResultsWrapper.RowRecord> currentPage;
-    private List<QueryResultsWrapper.RowRecord> currentPageSearch;
     private int currentRowIndex;
 
 
@@ -161,15 +159,14 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
         } else {
             searchIteratorReqBuilder.outputFields(milvusTable.collectionDesc.getFieldNames());
         }
-        LOG.info("milvus search queryVector=" + queryVectors.toString());
+        LOG.info("milvus search queryVector=" + stringToFloatList(milvusPushDownParam.getSearchVec()));
         SearchIteratorReq searchIteratorReq = searchIteratorReqBuilder.build();
         this.searchIterator = milvusClient.searchIterator(searchIteratorReq);
     }
 
-    // 多了一个score字段
     private Object[] convertRowRecord(QueryResultsWrapper.RowRecord rowRecord) {
-        List<CreateCollectionReq.FieldSchema> fieldSchemaList = milvusTable.collectionDesc.getCollectionSchema().getFieldSchemaList();
         ArrayList<Object> resList = new ArrayList<>();
+        List<CreateCollectionReq.FieldSchema> fieldSchemaList = milvusTable.collectionDesc.getCollectionSchema().getFieldSchemaList();
         for (CreateCollectionReq.FieldSchema fieldSchema : fieldSchemaList) {
             Object value = rowRecord.getFieldValues().get(fieldSchema.getName());
             switch (fieldSchema.getDataType()) {
@@ -235,8 +232,15 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
             }
         }
-        resList.add("");   // add default partitionName
-        resList.add(0f);   // add default score
+        // add default score
+        if (rowRecord.contains(MilvusTable.milvusSearchFieldScore)) {
+            Object value = rowRecord.get(MilvusTable.milvusSearchFieldScore);
+            resList.add(((Float)value).doubleValue());
+        } else {
+            resList.add(0.0);
+        }
+        // add default partitionName
+        resList.add("");
         return resList.toArray();
     }
 

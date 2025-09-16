@@ -20,9 +20,11 @@ public class MilvusTable extends AbstractTable {
     protected final String collectionName;
     protected DescribeCollectionResp collectionDesc;
     protected Map<String, DescribeIndexResp> indexDesc = new HashMap<>();
+
     protected RelDataType relDataType;
-    public static final String metaFieldPartition = "__partition__";
+    public static final String milvusSearchFieldScore = "score";
     public static final String metaFieldScore = "__score__";
+    public static final String metaFieldPartition = "__partition__";
 
     public MilvusTable(MilvusProxy milvusProxy, String collectionName) {
         this.milvusProxy = milvusProxy;
@@ -35,6 +37,7 @@ public class MilvusTable extends AbstractTable {
         if (this.relDataType != null) {
             return this.relDataType;
         }
+
         this.collectionDesc = milvusProxy.getCollectionDesc(collectionName);
         RelDataTypeFactory.FieldInfoBuilder fieldInfoBuilder = relDataTypeFactory.builder();
         for (CreateCollectionReq.FieldSchema fieldSchema : collectionDesc.getCollectionSchema().getFieldSchemaList()) {
@@ -124,8 +127,8 @@ public class MilvusTable extends AbstractTable {
                     throw new RuntimeException("Unable to recognize Milvus data type: " + fieldType.toString());
             }
         }
+        fieldInfoBuilder.add(metaFieldScore, SqlTypeName.DOUBLE);
         fieldInfoBuilder.add(metaFieldPartition, SqlTypeName.VARCHAR);
-        fieldInfoBuilder.add(metaFieldScore, SqlTypeName.FLOAT);
         this.relDataType = fieldInfoBuilder.build();
         return relDataType;
     }
