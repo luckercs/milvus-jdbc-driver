@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class FeatureGen {
+public class AnnUtils {
 
     private List<Float> gen_one_random_float_vector_list(int dim) {
         Random random = new Random();
@@ -28,6 +28,12 @@ public class FeatureGen {
     public String gen_random_float_vectors_str(int dim, int num) {
         List<List<Float>> vectorList = gen_random_float_vectors_list(dim, num);
         String vecStr = vectorList.toString();
+        return vecStr;
+    }
+
+    public String gen_random_float_vector_str(int dim) {
+        List<List<Float>> vectorList = gen_random_float_vectors_list(dim, 1);
+        String vecStr = vectorList.get(0).toString();
         return vecStr;
     }
 
@@ -80,10 +86,5 @@ public class FeatureGen {
         List<List<Byte>> vecs = gen_random_binary_vectors_list(dim, num);
         String vecStr = vecs.toString();
         return vecStr;
-    }
-
-    public static void main(String[] args) {
-        String s = new FeatureGen().gen_random_float_vectors_str(128, 1);
-        System.out.println(s);
     }
 }
