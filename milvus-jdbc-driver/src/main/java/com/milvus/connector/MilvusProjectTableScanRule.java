@@ -24,6 +24,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
+        System.out.println("hit ann rule");
         LogicalSort sort = (LogicalSort) relOptRuleCall.rels[0];
         LogicalProject project = (LogicalProject) relOptRuleCall.rel(1);
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[2];
