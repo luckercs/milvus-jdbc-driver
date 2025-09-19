@@ -6,6 +6,7 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.tree.Blocks;
 import org.apache.calcite.linq4j.tree.Expressions;
 import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
@@ -20,6 +21,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     private MilvusPushDownParam milvusPushDownParam = new MilvusPushDownParam();
 
     protected MilvusTableScan(RelOptCluster cluster, RelOptTable table) {
+
         super(cluster, cluster.traitSetOf(EnumerableConvention.INSTANCE), ImmutableList.of(), table);
     }
 
@@ -57,8 +59,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
         planner.addRule(MilvusRules.SORT_RULE);
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.PROJECT_RULE);
-
-//         super.register(planner);
+//        super.register(planner);
     }
 
 

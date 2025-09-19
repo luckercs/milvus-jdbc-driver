@@ -32,7 +32,6 @@ public class MilvusTranslatableTable extends MilvusTable implements Translatable
         };
     }
 
-
     @Override
     public <T> Queryable<T> asQueryable(QueryProvider queryProvider, SchemaPlus schemaPlus, String tableName) {
         throw new UnsupportedOperationException();

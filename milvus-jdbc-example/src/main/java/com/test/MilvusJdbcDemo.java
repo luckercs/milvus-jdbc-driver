@@ -39,7 +39,7 @@ public class MilvusJdbcDemo {
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
         String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_7.sql";
-        String sql = Arrays.toString(Files.readAllBytes(Paths.get(filePath)));
+        String sql = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
 
         System.out.println("初始计划===================");
         printPlan(connection, sql);
