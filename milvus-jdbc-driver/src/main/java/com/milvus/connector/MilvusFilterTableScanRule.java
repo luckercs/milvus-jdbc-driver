@@ -1,5 +1,6 @@
 package com.milvus.connector;
 
+import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.logical.LogicalFilter;
@@ -29,6 +30,14 @@ public class MilvusFilterTableScanRule extends RelRule<MilvusFilterTableScanRule
         LogicalFilter filter = (LogicalFilter) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rel(1);
 
+//        for (RelOptRule rule : relOptRuleCall.getPlanner().getRules()) {
+//            if (rule.toString().equals("SortRemoveRule")) {
+//                relOptRuleCall.getPlanner().removeRule(rule);
+//            }
+//        }
+
+        relOptRuleCall.getPlanner().getRules();
+
         ArrayList<String> partitions = new ArrayList<>();
         boolean withPartition = parserMilvusPartitions(filter.getCondition(), partitions, milvusTableScan.getMilvusTable());
         if (withPartition) {
@@ -39,10 +48,14 @@ public class MilvusFilterTableScanRule extends RelRule<MilvusFilterTableScanRule
         boolean parseMilvusExprSuccess = parseMilvusExpr(filter.getCondition(), exprBuilder, milvusTableScan.getMilvusTable());
         if (parseMilvusExprSuccess) {
             milvusTableScan.getPushDownParam().setFilterExpr(exprBuilder.toString());
-            relOptRuleCall.transformTo(milvusTableScan);
+            RexLiteral rexLiteral = milvusTableScan.getCluster().getRexBuilder().makeLiteral(true);
+            LogicalFilter logicalFilter = LogicalFilter.create(milvusTableScan, rexLiteral);
+            relOptRuleCall.transformTo(logicalFilter);
+        } else {
+            LogicalFilter logicalFilter = LogicalFilter.create(milvusTableScan, filter.getCondition());
+            relOptRuleCall.transformTo(logicalFilter);
         }
     }
-
 
 
     private static boolean parserMilvusPartitions(@NotNull RexNode filter, List<String> partitions, MilvusTable milvusTable) {

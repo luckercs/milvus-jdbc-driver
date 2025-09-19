@@ -25,17 +25,8 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
         System.out.println("hit ann rule");
-        LogicalSort sort = (LogicalSort) relOptRuleCall.rels[0];
-        LogicalProject project = (LogicalProject) relOptRuleCall.rel(1);
-        MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[2];
-
-        // 下推limit和offset参数
-        if (sort.fetch != null && sort.fetch.isA(SqlKind.LITERAL)) {
-            milvusTableScan.getPushDownParam().setLimit(Long.parseLong(((RexLiteral) (sort.fetch)).getValue2().toString()));
-        }
-        if (sort.offset != null && sort.offset.isA(SqlKind.LITERAL)) {
-            milvusTableScan.getPushDownParam().setOffset(Long.parseLong(((RexLiteral) (sort.offset)).getValue2().toString()));
-        }
+        LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
+        MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
         // ann 参数下推到 milvusTableScan
         RexNode annExpr = null;
@@ -61,7 +52,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
         if (annExpr != null && annIndex != -1) {
             RelDataTypeField scoreRelDataTypeField = null;
             for (RelDataTypeField relDataTypeField : milvusTableScan.getMilvusTable().relDataType.getFieldList()) {
-                if (relDataTypeField.getName().equals(MilvusTable.metaFieldScore)){
+                if (relDataTypeField.getName().equals(MilvusTable.metaFieldScore)) {
                     scoreRelDataTypeField = relDataTypeField;
                     break;
                 }
@@ -74,16 +65,14 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
             newProjects.set(annIndex, scoreRef);
 
             LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
-            LogicalSort newSort = LogicalSort.create(newProject, sort.getCollation(), sort.offset, sort.fetch);
-            relOptRuleCall.transformTo(newSort);
-        } else {
-            LogicalProject newProject = project.copy(project.getTraitSet(), milvusTableScan, project.getProjects(), project.getRowType());
-            LogicalSort newSort = LogicalSort.create(newProject, sort.getCollation(), sort.offset, sort.fetch);
-            relOptRuleCall.transformTo(newSort);
+            relOptRuleCall.transformTo(newProject);
         }
+//        else {
+//            LogicalProject newProject = project.copy(project.getTraitSet(), milvusTableScan, project.getProjects(), project.getRowType());
+//            relOptRuleCall.transformTo(newProject);
+//        }
         System.out.println("hello ann");
     }
-
 
 
     /**
@@ -100,9 +89,8 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
     public interface Config extends RelRule.Config {
 
         Config DEFAULT = ImmutableMilvusProjectTableScanRule.Config.builder().build()
-                .withOperandSupplier(sort -> sort.operand(LogicalSort.class)
-                        .inputs(project -> project.operand(LogicalProject.class).predicate(p -> hasAnnFunction(p))
-                                .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs())));
+                .withOperandSupplier(project -> project.operand(LogicalProject.class).predicate(p -> hasAnnFunction(p))
+                        .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs()));
 
         @Override
         default MilvusProjectTableScanRule toRule() {

@@ -1,2 +1,2 @@
--- 标量查询 limit
-select * from milvus.milvus_table_1 limit 11
+-- 标量全量查询  limit 已支持
+SELECT * from milvus.milvus_table_1 limit 13

@@ -2,6 +2,7 @@ package com.milvus.connector;
 
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalSort;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.sql.SqlKind;
@@ -16,49 +17,73 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
         System.out.println("hit MilvusSortTableScanRule");
-        LogicalSort sort = (LogicalSort) relOptRuleCall.rels[0];
-        MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
+        LogicalSort sort = null;
+        MilvusTableScan milvusTableScan = null;
+        for (RelNode rel : relOptRuleCall.rels) {
+            if (rel instanceof LogicalSort) {
+                sort = (LogicalSort) rel;
+            }
+            if (rel instanceof MilvusTableScan) {
+                milvusTableScan = (MilvusTableScan) rel;
+            }
+        }
+        if (sort == null || milvusTableScan == null) {
+            throw new RuntimeException("sort or milvusTableScan is null");
+        }
 
-        boolean flag = true;
-        if (sort.fetch != null) {
-            if (sort.fetch.isA(SqlKind.LITERAL)) {
-                milvusTableScan.getPushDownParam().setLimit(Long.parseLong(((RexLiteral) (sort.fetch)).getValue2().toString()));
-            } else {
-                flag = false;
-            }
+        // 下推limit和offset参数
+        if (sort.fetch != null && sort.fetch.isA(SqlKind.LITERAL)) {
+            milvusTableScan.getPushDownParam().setLimit(Long.parseLong(((RexLiteral) (sort.fetch)).getValue2().toString()));
         }
-        if (sort.offset != null) {
-            if (sort.offset.isA(SqlKind.LITERAL)) {
-                milvusTableScan.getPushDownParam().setOffset(Long.parseLong(((RexLiteral) (sort.offset)).getValue2().toString()));
-            } else {
-                flag = false;
-            }
-        }
-        if (flag) {
-            relOptRuleCall.transformTo(milvusTableScan);
+        if (sort.offset != null && sort.offset.isA(SqlKind.LITERAL)) {
+            milvusTableScan.getPushDownParam().setOffset(Long.parseLong(((RexLiteral) (sort.offset)).getValue2().toString()));
         }
     }
 
 
     /**
      * LogicalSort
-     *   MilvusTableScan
-     *
+     * xx
+     * MilvusTableScan
+     * <p>
      * ==>
-     *
+     * <p>
      * MilvusTableScan
      *
-     * */
+     *
+     */
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
 
         Config DEFAULT = ImmutableMilvusSortTableScanRule.Config.builder().build()
                 .withOperandSupplier(sort -> sort.operand(LogicalSort.class)
-                        .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs()));
+                        .inputs(scan -> scan.operand(RelNode.class)
+                                .predicate(rel -> rel instanceof MilvusTableScan ||
+                                        hasMilvusTableScanAncestor(rel)).anyInputs()));
+
+//        Config DEFAULT = ImmutableMilvusSortTableScanRule.Config.builder().build()
+//                .withOperandSupplier(sort -> sort.operand(EnumerableLimit.class)
+//                        .oneInput(scan -> scan.operand(MilvusTableScan.class).noInputs()));
+
 
         @Override
         default MilvusSortTableScanRule toRule() {
             return new MilvusSortTableScanRule(this);
+        }
+
+        static boolean hasMilvusTableScanAncestor(RelNode rel) {
+            if (rel == null) {
+                return false;
+            }
+            if (rel instanceof MilvusTableScan) {
+                return true;
+            }
+            for (RelNode input : rel.getInputs()) {
+                if (hasMilvusTableScanAncestor(input)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
