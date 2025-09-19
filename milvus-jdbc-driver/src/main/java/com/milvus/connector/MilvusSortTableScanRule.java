@@ -3,7 +3,7 @@ package com.milvus.connector;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.core.Sort;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.sql.SqlKind;
 import org.immutables.value.Value;
@@ -17,11 +17,11 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
         System.out.println("hit MilvusSortTableScanRule");
-        LogicalSort sort = null;
+        Sort sort = null;
         MilvusTableScan milvusTableScan = null;
         for (RelNode rel : relOptRuleCall.rels) {
-            if (rel instanceof LogicalSort) {
-                sort = (LogicalSort) rel;
+            if (rel instanceof Sort) {
+                sort = (Sort) rel;
             }
             if (rel instanceof MilvusTableScan) {
                 milvusTableScan = (MilvusTableScan) rel;
@@ -40,30 +40,14 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
         }
     }
 
-
-    /**
-     * LogicalSort
-     * xx
-     * MilvusTableScan
-     * <p>
-     * ==>
-     * <p>
-     * MilvusTableScan
-     *
-     *
-     */
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
 
         Config DEFAULT = ImmutableMilvusSortTableScanRule.Config.builder().build()
-                .withOperandSupplier(sort -> sort.operand(LogicalSort.class)
+                .withOperandSupplier(sort -> sort.operand(Sort.class)
                         .inputs(scan -> scan.operand(RelNode.class)
                                 .predicate(rel -> rel instanceof MilvusTableScan ||
-                                        hasMilvusTableScanAncestor(rel)).anyInputs()));
-
-//        Config DEFAULT = ImmutableMilvusSortTableScanRule.Config.builder().build()
-//                .withOperandSupplier(sort -> sort.operand(EnumerableLimit.class)
-//                        .oneInput(scan -> scan.operand(MilvusTableScan.class).noInputs()));
+                                        hasMilvusTableScanAncestor(rel)).noInputs()));
 
 
         @Override
@@ -86,5 +70,4 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
             return false;
         }
     }
-
 }

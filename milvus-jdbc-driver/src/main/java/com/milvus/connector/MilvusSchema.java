@@ -18,11 +18,7 @@ public class MilvusSchema extends AbstractSchema {
         List<String> collectionNames = milvusProxy.getAllCollections();
         Map<String, Table> tableMaps = new LinkedHashMap<>();
         for (String collectionName : collectionNames) {
-//            tableMaps.put(collectionName, new MilvusScannableTable(milvusProxy, collectionName));
-//            tableMaps.put(collectionName, new MilvusFilterableTable(milvusProxy, collectionName));
-            MilvusTranslatableTable milvusTranslatableTable = new MilvusTranslatableTable(milvusProxy, collectionName);
-
-            tableMaps.put(collectionName, milvusTranslatableTable);
+            tableMaps.put(collectionName, new MilvusTranslatableTable(milvusProxy, collectionName));
         }
         return tableMaps;
     }

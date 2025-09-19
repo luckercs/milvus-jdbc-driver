@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
-import java.util.Arrays;
 
 /**
  * 仅 milvus 数据源查询
@@ -38,15 +37,16 @@ public class MilvusJdbcDemo {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
-        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_7.sql";
+        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_1.sql";
         String sql = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
+        System.out.println("sql=" + sql);
 
-        System.out.println("初始计划===================");
-        printPlan(connection, sql);
-        Statement statement0 = connection.createStatement();
-        ResultSet resultSet0 = statement0.executeQuery("explain plan for " + sql);
-        System.out.println("优化后的计划===================");
-        printResultSet(resultSet0);
+//        System.out.println("初始计划===================");
+//        printPlan(connection, sql);
+//        Statement statement0 = connection.createStatement();
+//        ResultSet resultSet0 = statement0.executeQuery("explain plan for " + sql);
+//        System.out.println("优化后的计划===================");
+//        printResultSet(resultSet0);
 
 
         Statement statement = connection.createStatement();
@@ -86,6 +86,7 @@ public class MilvusJdbcDemo {
         FrameworkConfig frameworkConfig = Frameworks.newConfigBuilder().parserConfig(SqlParser.configBuilder().setLex(Lex.MYSQL).build())
                 .defaultSchema(prepareContext.getRootSchema().plus())
                 .build();
+
         Planner planner = Frameworks.getPlanner(frameworkConfig);
         SqlNode sqlNode = planner.parse(sql);
         SqlNode sqlNodeValidate = planner.validate(sqlNode);

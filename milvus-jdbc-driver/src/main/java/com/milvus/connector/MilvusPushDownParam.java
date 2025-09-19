@@ -2,7 +2,7 @@ package com.milvus.connector;
 
 import java.util.List;
 
-public class MilvusPushDownParam{
+public class MilvusPushDownParam {
     private String filterExpr;
     private List<String> partitionNames;
     private Long limit;

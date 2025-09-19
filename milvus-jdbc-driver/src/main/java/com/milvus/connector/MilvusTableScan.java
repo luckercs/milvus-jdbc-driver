@@ -6,14 +6,9 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.tree.Blocks;
 import org.apache.calcite.linq4j.tree.Expressions;
 import org.apache.calcite.plan.*;
-import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.RelOptTableImpl;
-import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.TableScan;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -21,7 +16,6 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     private MilvusPushDownParam milvusPushDownParam = new MilvusPushDownParam();
 
     protected MilvusTableScan(RelOptCluster cluster, RelOptTable table) {
-
         super(cluster, cluster.traitSetOf(EnumerableConvention.INSTANCE), ImmutableList.of(), table);
     }
 
@@ -50,7 +44,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
                                 Expressions.constant(milvusPushDownParam.isSearchQuery()),
                                 Expressions.constant(milvusPushDownParam.getSearchVecColName()),
                                 Expressions.constant(milvusPushDownParam.getSearchVec())
-                                )
+                        )
                 )));
     }
 
@@ -59,7 +53,7 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
         planner.addRule(MilvusRules.SORT_RULE);
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.PROJECT_RULE);
-//        super.register(planner);
+        planner.addRule(MilvusRules.ANN_RULE);
     }
 
 
@@ -67,5 +61,4 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     public RelWriter explainTerms(RelWriter pw) {
         return super.explainTerms(pw).item("milvusPushDownParam", milvusPushDownParam.toString());
     }
-
 }

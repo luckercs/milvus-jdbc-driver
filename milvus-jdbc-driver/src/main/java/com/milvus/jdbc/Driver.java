@@ -60,7 +60,7 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
                 )
         );
 
-        rootSchema.add("ann", ScalarFunctionImpl.create(Ann.class, "ann"));
+        rootSchema.add(Ann.funcName, ScalarFunctionImpl.create(Ann.class, Ann.funcName));
         return connection;
     }
 

@@ -1,20 +1,15 @@
 package com.milvus.connector;
 
+import com.milvus.functions.Ann;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.logical.LogicalProject;
-import org.apache.calcite.rel.logical.LogicalSort;
-import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.sql.SqlKind;
 import org.immutables.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Value.Enclosing
 public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRule.Config> {
@@ -24,73 +19,50 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit ann rule");
+        System.out.println("hit MilvusProjectTableScanRule");
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
-        // ann 参数下推到 milvusTableScan
-        RexNode annExpr = null;
-        int annIndex = -1;
+
+        List<String> originalFieldNames = project.getRowType().getFieldNames();
+        List<RexNode> originalProjects = project.getProjects();
+        List<RexNode> newProjects = new ArrayList<>();
+        List<String> newFieldNames = new ArrayList<>();
         for (int i = 0; i < project.getProjects().size(); i++) {
-            RexNode exp = project.getProjects().get(i);
-            if (exp instanceof RexCall) {
-                String name = ((RexCall) exp).op.getName();
-                if (name.toLowerCase().equals("ann")) {
-                    annExpr = exp;
-                    annIndex = i;
-                    List<RexNode> funcOperands = ((RexCall) exp).getOperands();
-                    String vecColName = ((RexLiteral) (funcOperands.get(0))).toString().replace("\'", "");
-                    String queryVec = ((RexLiteral) (funcOperands.get(1))).toString().replace("\'", "");
-                    milvusTableScan.getPushDownParam().setSearchQuery(true);
-                    milvusTableScan.getPushDownParam().setSearchVecColName(vecColName);
-                    milvusTableScan.getPushDownParam().setSearchVec(queryVec);
-                    break;
-                }
+            String fieldName = project.getRowType().getFieldNames().get(i);
+            if (fieldName.equals(MilvusTable.metaFieldPartition) || fieldName.equals(MilvusTable.metaFieldScore)) {
+                continue;
             }
+            newProjects.add(originalProjects.get(i));
+            newFieldNames.add(fieldName);
+        }
+        if (newProjects.isEmpty()) {
+            relOptRuleCall.transformTo(milvusTableScan);
+            return;
         }
 
-        if (annExpr != null && annIndex != -1) {
-            RelDataTypeField scoreRelDataTypeField = null;
-            for (RelDataTypeField relDataTypeField : milvusTableScan.getMilvusTable().relDataType.getFieldList()) {
-                if (relDataTypeField.getName().equals(MilvusTable.metaFieldScore)) {
-                    scoreRelDataTypeField = relDataTypeField;
-                    break;
-                }
+        List<String> originalScanFields = milvusTableScan.getMilvusTable().relDataType.getFieldNames();
+        List<String> newScanFields = new ArrayList<>();
+        for (String field : originalScanFields) {
+            if (field.equals(MilvusTable.metaFieldPartition)
+                    || field.equals(MilvusTable.metaFieldScore)) {
+                continue;
             }
-            if (scoreRelDataTypeField == null) {
-                throw new IllegalStateException("Score field not found in table metadata");
-            }
-            List<RexNode> newProjects = new ArrayList<>(project.getProjects());
-            RexInputRef scoreRef = new RexInputRef(scoreRelDataTypeField.getIndex(), scoreRelDataTypeField.getType());
-            newProjects.set(annIndex, scoreRef);
-
-            LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
-            relOptRuleCall.transformTo(newProject);
+            newScanFields.add(field);
         }
-//        else {
-//            LogicalProject newProject = project.copy(project.getTraitSet(), milvusTableScan, project.getProjects(), project.getRowType());
-//            relOptRuleCall.transformTo(newProject);
-//        }
-        System.out.println("hello ann");
+        //todo 去除掉 milvusTableScan realtype的多余字段
+
+        LogicalProject newProject = LogicalProject.create(milvusTableScan,  project.getHints(),  newProjects, newFieldNames);
+        relOptRuleCall.transformTo(newProject);
     }
 
-
-    /**
-     * LogicalProject
-     * MilvusTableScan
-     * <p>
-     * ==>
-     * <p>
-     * MilvusTableScan
-     *
-     *
-     */
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
 
         Config DEFAULT = ImmutableMilvusProjectTableScanRule.Config.builder().build()
-                .withOperandSupplier(project -> project.operand(LogicalProject.class).predicate(p -> hasAnnFunction(p))
+                .withOperandSupplier(project -> project.operand(LogicalProject.class).predicate(rel -> !hasAnnFunction((rel)))
                         .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs()));
+
 
         @Override
         default MilvusProjectTableScanRule toRule() {
@@ -101,7 +73,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
             for (RexNode exp : project.getProjects()) {
                 if (exp instanceof RexCall) {
                     RexCall call = (RexCall) exp;
-                    if (call.op.getName().equalsIgnoreCase("ann")) {
+                    if (call.op.getName().equalsIgnoreCase(Ann.funcName)) {
                         return true;
                     }
                 }
@@ -109,5 +81,4 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
             return false;
         }
     }
-
 }

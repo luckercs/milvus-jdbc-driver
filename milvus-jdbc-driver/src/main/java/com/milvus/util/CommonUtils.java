@@ -3,7 +3,7 @@ package com.milvus.util;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-// copy: https://github.com/milvus-io/milvus-sdk-java/tree/master/examples/src/main/java/io/milvus/v1/CommonUtils.java
+// https://github.com/milvus-io/milvus-sdk-java/tree/master/examples/src/main/java/io/milvus/v1/CommonUtils.java
 
 public class CommonUtils {
     

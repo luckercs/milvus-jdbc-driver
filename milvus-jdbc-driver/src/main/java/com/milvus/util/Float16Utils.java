@@ -6,7 +6,7 @@ import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-// copy: https://github.com/milvus-io/milvus-sdk-java/tree/master/sdk-core/src/main/java/io/milvus/common/utils/Float16Utils.java
+// https://github.com/milvus-io/milvus-sdk-java/tree/master/sdk-core/src/main/java/io/milvus/common/utils/Float16Utils.java
 
 public class Float16Utils {
     /**
