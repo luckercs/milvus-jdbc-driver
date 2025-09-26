@@ -38,6 +38,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
         }
         if (newProjects.isEmpty()) {
             relOptRuleCall.transformTo(milvusTableScan);
+            System.out.println("hit MilvusProjectTableScanRule and update" );
             return;
         }
 
@@ -54,6 +55,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
 
         LogicalProject newProject = LogicalProject.create(milvusTableScan,  project.getHints(),  newProjects, newFieldNames);
         relOptRuleCall.transformTo(newProject);
+        System.out.println("hit MilvusProjectTableScanRule and update" );
     }
 
     @Value.Immutable(singleton = false)

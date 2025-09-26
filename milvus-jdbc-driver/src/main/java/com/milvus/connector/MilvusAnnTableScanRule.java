@@ -65,6 +65,7 @@ public class MilvusAnnTableScanRule extends RelRule<MilvusAnnTableScanRule.Confi
 
             LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
             relOptRuleCall.transformTo(newProject);
+            System.out.println("hit ann and update");
         }
     }
 

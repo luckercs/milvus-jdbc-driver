@@ -6,9 +6,13 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.tree.Blocks;
 import org.apache.calcite.linq4j.tree.Expressions;
 import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.TableScan;
+import org.apache.calcite.runtime.PairList;
+
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -51,11 +55,12 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
     @Override
     public void register(RelOptPlanner planner) {
         planner.addRule(MilvusRules.SORT_RULE);
-        planner.addRule(MilvusRules.FILTER_RULE);
+        planner.addRule(MilvusRules.LIMIT_RULE);
+//        planner.addRule(MilvusRules.LIMIT_CALC_RULE);
         planner.addRule(MilvusRules.PROJECT_RULE);
+        planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.ANN_RULE);
     }
-
 
     @Override
     public RelWriter explainTerms(RelWriter pw) {

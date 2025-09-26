@@ -44,6 +44,7 @@ public class MilvusFilterTableScanRule extends RelRule<MilvusFilterTableScanRule
             RexLiteral rexLiteral = milvusTableScan.getCluster().getRexBuilder().makeLiteral(true);
             LogicalFilter logicalFilter = LogicalFilter.create(milvusTableScan, rexLiteral);
             relOptRuleCall.transformTo(logicalFilter);
+            System.out.println("hit MilvusFilterTableScanRule and update");
         }
     }
 
