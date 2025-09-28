@@ -54,10 +54,11 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
 
     @Override
     public void register(RelOptPlanner planner) {
+
         planner.addRule(MilvusRules.SORT_RULE);
         planner.addRule(MilvusRules.LIMIT_RULE);
-//        planner.addRule(MilvusRules.LIMIT_CALC_RULE);
-        planner.addRule(MilvusRules.PROJECT_RULE);
+//        planner.addRule(MilvusRules.LIMIT_CALC_RULE);  //无需修复，正常
+//        planner.addRule(MilvusRules.PROJECT_RULE);  // 去除掉元字段
         planner.addRule(MilvusRules.FILTER_RULE);
         planner.addRule(MilvusRules.ANN_RULE);
     }

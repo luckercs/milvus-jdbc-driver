@@ -27,14 +27,13 @@ public class MilvusAnnTableScanRule extends RelRule<MilvusAnnTableScanRule.Confi
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
-        // ann 参数下推到 milvusTableScan
         RexNode annExpr = null;
         int annIndex = -1;
         for (int i = 0; i < project.getProjects().size(); i++) {
             RexNode exp = project.getProjects().get(i);
             if (exp instanceof RexCall) {
                 String name = ((RexCall) exp).op.getName();
-                if (name.toLowerCase().equals("ann")) {
+                if (name.toLowerCase().equals(Ann.funcName)) {
                     annExpr = exp;
                     annIndex = i;
                     List<RexNode> funcOperands = ((RexCall) exp).getOperands();

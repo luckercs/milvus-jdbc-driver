@@ -23,12 +23,13 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
-
-        List<String> originalFieldNames = project.getRowType().getFieldNames();
+        if (milvusTableScan.getPushDownParam().isSearchQuery()) {
+            return;
+        }
         List<RexNode> originalProjects = project.getProjects();
         List<RexNode> newProjects = new ArrayList<>();
         List<String> newFieldNames = new ArrayList<>();
-        for (int i = 0; i < project.getProjects().size(); i++) {
+        for (int i = 0; i < originalProjects.size(); i++) {
             String fieldName = project.getRowType().getFieldNames().get(i);
             if (fieldName.equals(MilvusTable.metaFieldPartition) || fieldName.equals(MilvusTable.metaFieldScore)) {
                 continue;
@@ -36,26 +37,10 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
             newProjects.add(originalProjects.get(i));
             newFieldNames.add(fieldName);
         }
-        if (newProjects.isEmpty()) {
-            relOptRuleCall.transformTo(milvusTableScan);
-            System.out.println("hit MilvusProjectTableScanRule and update" );
-            return;
-        }
 
-        List<String> originalScanFields = milvusTableScan.getMilvusTable().relDataType.getFieldNames();
-        List<String> newScanFields = new ArrayList<>();
-        for (String field : originalScanFields) {
-            if (field.equals(MilvusTable.metaFieldPartition)
-                    || field.equals(MilvusTable.metaFieldScore)) {
-                continue;
-            }
-            newScanFields.add(field);
-        }
-        //todo 去除掉 milvusTableScan realtype的多余字段
-
-        LogicalProject newProject = LogicalProject.create(milvusTableScan,  project.getHints(),  newProjects, newFieldNames);
+        LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, newFieldNames);
         relOptRuleCall.transformTo(newProject);
-        System.out.println("hit MilvusProjectTableScanRule and update" );
+        System.out.println("hit MilvusProjectTableScanRule and update");
     }
 
     @Value.Immutable(singleton = false)
