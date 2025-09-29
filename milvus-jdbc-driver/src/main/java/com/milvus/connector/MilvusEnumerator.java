@@ -59,10 +59,11 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
             List<QueryResultsWrapper.RowRecord> rowRecords;
             if (milvusPushDownParam.isSearchQuery()) {
                 rowRecords = searchIterator.next();
+                LOG.info("milvus searchIterator next page rowcount: " + rowRecords.size());
             } else {
                 rowRecords = queryIterator.next();
+                LOG.info("milvus queryIterator next page rowcount: " + rowRecords.size());
             }
-            LOG.info("milvus queryIterator next page rowcount: " + rowRecords.size());
             if (rowRecords.isEmpty()) {
                 close();
                 return false;
@@ -87,11 +88,13 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     @Override
     public void close() {
-        LOG.info("milvusClient.queryIterator closed");
+
         if (milvusPushDownParam.isSearchQuery()) {
             milvusTable.milvusProxy.closeSearchIterator(searchIterator);
+            LOG.info("milvusClient.searchIterator closed");
         } else {
             milvusTable.milvusProxy.closeQueryIterator(queryIterator);
+            LOG.info("milvusClient.queryIterator closed");
         }
         milvusTable.milvusProxy.closeClient(milvusClient);
     }

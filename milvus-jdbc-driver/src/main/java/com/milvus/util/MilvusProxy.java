@@ -22,6 +22,7 @@ public class MilvusProxy {
     private final boolean useSSL;
     private final int batchSize;
 
+    public static final long searchTopMax = 16384;
 
     public MilvusProxy(String uri, String user, String password, String db, int timeoutMs, boolean useSSL, int batchSize) {
         this.uri = uri;
@@ -42,14 +43,18 @@ public class MilvusProxy {
     }
 
     public MilvusClientV2 getClient() {
-        ConnectConfig connectConfig = ConnectConfig.builder()
-                .uri(uri)
-                .username(user)
-                .password(password)
-                .dbName(db)
-                .connectTimeoutMs(timeoutMs)
-                .build();
-        return new MilvusClientV2(connectConfig);
+        try {
+            ConnectConfig connectConfig = ConnectConfig.builder()
+                    .uri(uri)
+                    .username(user)
+                    .password(password)
+                    .dbName(db)
+                    .connectTimeoutMs(timeoutMs)
+                    .build();
+            return new MilvusClientV2(connectConfig);
+        } catch (Exception e) {
+            throw new RuntimeException("Connect to milvus error: " + this.toString(), e);
+        }
     }
 
     public void closeClient(MilvusClientV2 milvusClient) {
@@ -92,5 +97,18 @@ public class MilvusProxy {
         DescribeIndexResp describeIndexResp = milvusClient.describeIndex(DescribeIndexReq.builder().databaseName(db).collectionName(collectionName).fieldName(fieldName).build());
         closeClient(milvusClient);
         return describeIndexResp;
+    }
+
+    @Override
+    public String toString() {
+        return "MilvusProxy{" +
+                "uri='" + uri + '\'' +
+                ", user='" + user + '\'' +
+                ", password='" + password + '\'' +
+                ", db='" + db + '\'' +
+                ", timeoutMs=" + timeoutMs +
+                ", useSSL=" + useSSL +
+                ", batchSize=" + batchSize +
+                '}';
     }
 }

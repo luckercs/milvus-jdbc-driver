@@ -16,9 +16,6 @@ public abstract class MilvusRules {
     public static final MilvusLimitTableScanRule LIMIT_RULE =
             MilvusLimitTableScanRule.Config.DEFAULT.toRule();
 
-    public static final MilvusLimitCalcTableScanRule LIMIT_CALC_RULE =
-            MilvusLimitCalcTableScanRule.Config.DEFAULT.toRule();
-
-    public static final MilvusAnnTableScanRule ANN_RULE =
-            MilvusAnnTableScanRule.Config.DEFAULT.toRule();
+    public static final MilvusProjectAnnTableScanRule PROJECT_ANN_RULE =
+            MilvusProjectAnnTableScanRule.Config.DEFAULT.toRule();
 }

@@ -5,10 +5,7 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.*;
 import org.immutables.value.Value;
 
 import java.util.ArrayList;
@@ -16,14 +13,14 @@ import java.util.List;
 
 
 @Value.Enclosing
-public class MilvusAnnTableScanRule extends RelRule<MilvusAnnTableScanRule.Config> {
-    protected MilvusAnnTableScanRule(Config config) {
+public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTableScanRule.Config> {
+    protected MilvusProjectAnnTableScanRule(Config config) {
         super(config);
     }
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit ann rule");
+        System.out.println("hit MilvusProjectAnnTableScanRule");
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
@@ -46,38 +43,34 @@ public class MilvusAnnTableScanRule extends RelRule<MilvusAnnTableScanRule.Confi
                 }
             }
         }
-
-        if (annExpr != null && annIndex != -1) {
-            RelDataTypeField scoreRelDataTypeField = null;
-            for (RelDataTypeField relDataTypeField : milvusTableScan.getMilvusTable().relDataType.getFieldList()) {
-                if (relDataTypeField.getName().equals(MilvusTable.metaFieldScore)) {
-                    scoreRelDataTypeField = relDataTypeField;
-                    break;
-                }
+        RelDataTypeField scoreRelDataTypeField = null;
+        for (RelDataTypeField relDataTypeField : milvusTableScan.getMilvusTable().relDataType.getFieldList()) {
+            if (relDataTypeField.getName().equals(MilvusTable.metaFieldScore)) {
+                scoreRelDataTypeField = relDataTypeField;
+                break;
             }
-            if (scoreRelDataTypeField == null) {
-                throw new IllegalStateException("Score field not found in table metadata");
-            }
-            List<RexNode> newProjects = new ArrayList<>(project.getProjects());
-            RexInputRef scoreRef = new RexInputRef(scoreRelDataTypeField.getIndex(), scoreRelDataTypeField.getType());
-            newProjects.set(annIndex, scoreRef);
-
-            LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
-            relOptRuleCall.transformTo(newProject);
-            System.out.println("hit ann and update");
         }
+        if (scoreRelDataTypeField == null) {
+            throw new IllegalStateException("Score field not found in table metadata");
+        }
+        List<RexNode> newProjects = new ArrayList<>(project.getProjects());
+        RexInputRef scoreRef = new RexInputRef(scoreRelDataTypeField.getIndex(), scoreRelDataTypeField.getType());
+        newProjects.set(annIndex, scoreRef);
+        LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
+        relOptRuleCall.transformTo(newProject);
+        System.out.println("hit ann and update");
     }
 
     @Value.Immutable(singleton = false)
     public interface Config extends RelRule.Config {
 
-        Config DEFAULT = ImmutableMilvusAnnTableScanRule.Config.builder().build()
+        Config DEFAULT = ImmutableMilvusProjectAnnTableScanRule.Config.builder().build()
                 .withOperandSupplier(project -> project.operand(LogicalProject.class).predicate(p -> hasAnnFunction(p))
                         .inputs(scan -> scan.operand(MilvusTableScan.class).noInputs()));
 
         @Override
-        default MilvusAnnTableScanRule toRule() {
-            return new MilvusAnnTableScanRule(this);
+        default MilvusProjectAnnTableScanRule toRule() {
+            return new MilvusProjectAnnTableScanRule(this);
         }
 
         static boolean hasAnnFunction(LogicalProject project) {

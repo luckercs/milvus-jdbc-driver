@@ -37,7 +37,7 @@ public class MilvusJdbcDemo {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
-        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_1.sql";
+        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_14.sql";
         String sql = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
         System.out.println("sql=" + sql);
 
@@ -47,7 +47,6 @@ public class MilvusJdbcDemo {
         ResultSet resultSet0 = statement0.executeQuery("explain plan for " + sql);
         System.out.println("优化后的计划===================");
         printResultSet(resultSet0);
-
 
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
