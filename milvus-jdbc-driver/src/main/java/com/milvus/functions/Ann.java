@@ -5,6 +5,6 @@ public class Ann {
     public static String funcName = "ann";
 
     public double ann(String vecCol, String vecList) {
-        throw new UnsupportedOperationException("ANN function should be pushed down to MilvusSource");
+        throw new UnsupportedOperationException("ANN function SQL must contain ORDER BY statement and LIMIT statement");
     }
 }

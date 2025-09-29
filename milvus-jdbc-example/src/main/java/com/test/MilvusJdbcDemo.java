@@ -37,7 +37,7 @@ public class MilvusJdbcDemo {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
-        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_14.sql";
+        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_6.sql";
         String sql = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
         System.out.println("sql=" + sql);
 
