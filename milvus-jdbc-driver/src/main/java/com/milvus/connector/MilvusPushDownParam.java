@@ -11,11 +11,12 @@ public class MilvusPushDownParam {
     private boolean searchQuery = false;
     private String searchVecColName;
     private String searchVec;
+    private String searchParams;
 
     public MilvusPushDownParam() {
     }
 
-    public MilvusPushDownParam(String filterExpr, List<String> partitionNames, Long limit, Long offset, List<String> outputFields, boolean searchQuery, String searchVecColName, String searchVec) {
+    public MilvusPushDownParam(String filterExpr, List<String> partitionNames, Long limit, Long offset, List<String> outputFields, boolean searchQuery, String searchVecColName, String searchVec, String searchParams) {
         this.filterExpr = filterExpr;
         this.partitionNames = partitionNames;
         this.limit = limit;
@@ -24,6 +25,7 @@ public class MilvusPushDownParam {
         this.searchQuery = searchQuery;
         this.searchVecColName = searchVecColName;
         this.searchVec = searchVec;
+        this.searchParams = searchParams;
     }
 
     public String getFilterExpr() {
@@ -90,6 +92,14 @@ public class MilvusPushDownParam {
         this.searchVec = searchVec;
     }
 
+    public String getSearchParams() {
+        return searchParams;
+    }
+
+    public void setSearchParams(String searchParams) {
+        this.searchParams = searchParams;
+    }
+
     @Override
     public String toString() {
         return "MilvusPushDownParam{" +
@@ -101,6 +111,7 @@ public class MilvusPushDownParam {
                 ", searchQuery=" + searchQuery +
                 ", searchVecColName='" + searchVecColName + '\'' +
                 ", searchVec='" + searchVec + '\'' +
+                ", searchParams='" + searchParams + '\'' +
                 '}';
     }
 }

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+BINPATH=$(cd "$(dirname "$0")" && pwd)
+
+LIBPATH=$(cd "$BINPATH"/../lib/ && pwd)
+
+exec java -cp ".:${LIBPATH}/*" sqlline.SqlLine "$@"

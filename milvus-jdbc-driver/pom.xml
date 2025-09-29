@@ -4,9 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.luckercs</groupId>
+    <parent>
+        <groupId>com.luckercs</groupId>
+        <artifactId>milvus-jdbc</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
     <artifactId>milvus-jdbc-driver</artifactId>
-    <version>1.0.0</version>
     <name>${project.artifactId}</name>
 
     <properties>
@@ -48,18 +52,7 @@
             <artifactId>gson</artifactId>
             <version>2.11.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.tensorflow</groupId>-->
-<!--            <artifactId>tensorflow-core-platform</artifactId>-->
-<!--            <version>0.5.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.tensorflow</groupId>-->
-<!--            <artifactId>tensorflow-core-api</artifactId>-->
-<!--            <version>0.5.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
+
         <dependency>
             <groupId>org.immutables</groupId>
             <artifactId>value</artifactId>
@@ -70,6 +63,7 @@
             <artifactId>value-annotations</artifactId>
             <version>2.8.8</version>
         </dependency>
+
 
     </dependencies>
 
@@ -114,6 +108,7 @@
                                 <exclude>NOTICE.txt</exclude>
                                 <exclude>mozilla/**</exclude>
                                 <exclude>**/module-info.class</exclude>
+                                <exclude>log4j2.properties</exclude>
                             </excludes>
                         </filter>
                     </filters>

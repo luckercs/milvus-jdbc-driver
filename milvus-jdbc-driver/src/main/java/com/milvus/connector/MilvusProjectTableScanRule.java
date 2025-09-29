@@ -19,7 +19,6 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit MilvusProjectTableScanRule");
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
@@ -40,7 +39,6 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
 
         LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, newFieldNames);
         relOptRuleCall.transformTo(newProject);
-        System.out.println("hit MilvusProjectTableScanRule and update");
     }
 
     @Value.Immutable(singleton = false)
@@ -60,7 +58,7 @@ public class MilvusProjectTableScanRule extends RelRule<MilvusProjectTableScanRu
             for (RexNode exp : project.getProjects()) {
                 if (exp instanceof RexCall) {
                     RexCall call = (RexCall) exp;
-                    if (call.op.getName().equalsIgnoreCase(Ann.funcName)) {
+                    if (call.op.getName().equalsIgnoreCase(Ann.annFuncName) || call.op.getName().equalsIgnoreCase(Ann.annsFuncName)) {
                         return true;
                     }
                 }

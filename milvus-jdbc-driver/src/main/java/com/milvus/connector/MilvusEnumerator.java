@@ -59,10 +59,10 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
             List<QueryResultsWrapper.RowRecord> rowRecords;
             if (milvusPushDownParam.isSearchQuery()) {
                 rowRecords = searchIterator.next();
-                LOG.info("milvus searchIterator next page rowcount: " + rowRecords.size());
+                LOG.debug("milvus searchIterator next page rowcount: " + rowRecords.size());
             } else {
                 rowRecords = queryIterator.next();
-                LOG.info("milvus queryIterator next page rowcount: " + rowRecords.size());
+                LOG.debug("milvus queryIterator next page rowcount: " + rowRecords.size());
             }
             if (rowRecords.isEmpty()) {
                 close();
@@ -78,7 +78,7 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     @Override
     public void reset() {
-        LOG.info("milvusClient.queryIterator reset");
+        LOG.debug("milvusClient.queryIterator reset");
         if (milvusPushDownParam.isSearchQuery()) {
             initSearchIteratorReq();
         } else {
@@ -88,13 +88,12 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
     @Override
     public void close() {
-
         if (milvusPushDownParam.isSearchQuery()) {
             milvusTable.milvusProxy.closeSearchIterator(searchIterator);
-            LOG.info("milvusClient.searchIterator closed");
+            LOG.debug("milvusClient.searchIterator closed");
         } else {
             milvusTable.milvusProxy.closeQueryIterator(queryIterator);
-            LOG.info("milvusClient.queryIterator closed");
+            LOG.debug("milvusClient.queryIterator closed");
         }
         milvusTable.milvusProxy.closeClient(milvusClient);
     }
@@ -108,23 +107,23 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
         if (milvusPushDownParam != null && milvusPushDownParam.getFilterExpr() != null && !milvusPushDownParam.getFilterExpr().equals("")) {
             queryIteratorReqBuilder.expr(milvusPushDownParam.getFilterExpr());
-            LOG.info("milvus query PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
+            LOG.debug("milvus query PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getPartitionNames() != null && !milvusPushDownParam.getPartitionNames().isEmpty()) {
             queryIteratorReqBuilder.partitionNames(milvusPushDownParam.getPartitionNames());
-            LOG.info("milvus query PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
+            LOG.debug("milvus query PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getLimit() != null && milvusPushDownParam.getLimit() > 0) {
             queryIteratorReqBuilder.limit(milvusPushDownParam.getLimit());
-            LOG.info("milvus query PushDownParam limit: " + milvusPushDownParam.getLimit());
+            LOG.debug("milvus query PushDownParam limit: " + milvusPushDownParam.getLimit());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getOffset() != null && milvusPushDownParam.getOffset() > 0) {
             queryIteratorReqBuilder.offset(milvusPushDownParam.getOffset());
-            LOG.info("milvus query PushDownParam offset: " + milvusPushDownParam.getOffset());
+            LOG.debug("milvus query PushDownParam offset: " + milvusPushDownParam.getOffset());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getOutputFields() != null && !milvusPushDownParam.getOutputFields().isEmpty()) {
             queryIteratorReqBuilder.outputFields(milvusPushDownParam.getOutputFields());
-            LOG.info("milvus query PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
+            LOG.debug("milvus query PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
         } else {
             queryIteratorReqBuilder.outputFields(milvusTable.collectionDesc.getFieldNames());
         }
@@ -146,23 +145,28 @@ class MilvusEnumerator<E> implements Enumerator<Object[]> {
 
         if (milvusPushDownParam != null && milvusPushDownParam.getFilterExpr() != null && !milvusPushDownParam.getFilterExpr().equals("")) {
             searchIteratorReqBuilder.expr(milvusPushDownParam.getFilterExpr());
-            LOG.info("milvus search PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
+            LOG.debug("milvus search PushDownParam filterExpr: " + milvusPushDownParam.getFilterExpr());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getPartitionNames() != null && !milvusPushDownParam.getPartitionNames().isEmpty()) {
             searchIteratorReqBuilder.partitionNames(milvusPushDownParam.getPartitionNames());
-            LOG.info("milvus search PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
+            LOG.debug("milvus search PushDownParam partitionNames: " + milvusPushDownParam.getPartitionNames());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getLimit() != null && milvusPushDownParam.getLimit() > 0) {
             searchIteratorReqBuilder.limit(milvusPushDownParam.getLimit());
-            LOG.info("milvus search PushDownParam limit: " + milvusPushDownParam.getLimit());
+            LOG.debug("milvus search PushDownParam limit: " + milvusPushDownParam.getLimit());
         }
         if (milvusPushDownParam != null && milvusPushDownParam.getOutputFields() != null && !milvusPushDownParam.getOutputFields().isEmpty()) {
             searchIteratorReqBuilder.outputFields(milvusPushDownParam.getOutputFields());
-            LOG.info("milvus search PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
+            LOG.debug("milvus search PushDownParam outputFields: " + milvusPushDownParam.getOutputFields());
         } else {
             searchIteratorReqBuilder.outputFields(milvusTable.collectionDesc.getFieldNames());
         }
-        LOG.info("milvus search queryVector=" + stringToFloatList(milvusPushDownParam.getSearchVec()));
+        if (milvusPushDownParam != null && milvusPushDownParam.getSearchParams() != null && !milvusPushDownParam.getSearchParams().equals("")) {
+            searchIteratorReqBuilder.params(milvusPushDownParam.getSearchParams());
+            LOG.debug("milvus search PushDownParam searchParams: " + milvusPushDownParam.getSearchParams());
+        }
+
+        LOG.debug("milvus search queryVector=" + stringToFloatList(milvusPushDownParam.getSearchVec()));
         SearchIteratorReq searchIteratorReq = searchIteratorReqBuilder.build();
         this.searchIterator = milvusClient.searchIterator(searchIteratorReq);
     }

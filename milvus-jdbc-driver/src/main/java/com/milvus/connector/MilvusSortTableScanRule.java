@@ -16,7 +16,6 @@ public class MilvusSortTableScanRule extends RelRule<MilvusSortTableScanRule.Con
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit MilvusSortTableScanRule");
         Sort sort = null;
         MilvusTableScan milvusTableScan = null;
         for (RelNode rel : relOptRuleCall.rels) {

@@ -36,7 +36,7 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         Connection connection = super.connect(url, info);
 
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.User)) {
-            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty("user", "root"));
+            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty("user", MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)));
         }
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord)) {
             info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord, info.getProperty("password", ""));
@@ -45,11 +45,10 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
             parseMilvusUrl(url, info);
         }
 
-        // add schemas
         Properties milvusProps = filterDataSourceProps(info, DATASOURCE_MILVUS);
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
-        rootSchema.add("milvus", new MilvusSchema(
+        rootSchema.add(info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB), new MilvusSchema(
                         milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim(),
                         milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim(),
                         milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim(),
@@ -60,16 +59,17 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
                 )
         );
 
-        rootSchema.add(Ann.funcName, ScalarFunctionImpl.create(Ann.class, Ann.funcName));
+        rootSchema.add(Ann.annFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annFuncName));
+        rootSchema.add(Ann.annsFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annsFuncName));
         return connection;
     }
 
     private void parseMilvusUrl(String url, Properties props) {
         if (!props.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.UseSSL)) {
-            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UseSSL, "false");
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL).toString());
         }
         if (!props.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.DB)) {
-            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB, "default");
+            props.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB));
         }
 
         String url_suffixes = url.split("//")[1];

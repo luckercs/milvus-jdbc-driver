@@ -16,7 +16,6 @@ public class MilvusLimitTableScanRule extends RelRule<MilvusLimitTableScanRule.C
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit MilvusLimitTableScanRule");
         EnumerableLimit limit = null;
         MilvusTableScan milvusTableScan = null;
         for (RelNode rel : relOptRuleCall.rels) {

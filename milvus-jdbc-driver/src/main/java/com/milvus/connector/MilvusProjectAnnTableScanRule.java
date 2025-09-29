@@ -20,7 +20,6 @@ public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTable
 
     @Override
     public void onMatch(RelOptRuleCall relOptRuleCall) {
-        System.out.println("hit MilvusProjectAnnTableScanRule");
         LogicalProject project = (LogicalProject) relOptRuleCall.rels[0];
         MilvusTableScan milvusTableScan = (MilvusTableScan) relOptRuleCall.rels[1];
 
@@ -30,7 +29,7 @@ public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTable
             RexNode exp = project.getProjects().get(i);
             if (exp instanceof RexCall) {
                 String name = ((RexCall) exp).op.getName();
-                if (name.toLowerCase().equals(Ann.funcName)) {
+                if (name.toLowerCase().equals(Ann.annFuncName)) {
                     annExpr = exp;
                     annIndex = i;
                     List<RexNode> funcOperands = ((RexCall) exp).getOperands();
@@ -39,6 +38,19 @@ public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTable
                     milvusTableScan.getPushDownParam().setSearchQuery(true);
                     milvusTableScan.getPushDownParam().setSearchVecColName(vecColName);
                     milvusTableScan.getPushDownParam().setSearchVec(queryVec);
+                    break;
+                }
+                if (name.toLowerCase().equals(Ann.annsFuncName)) {
+                    annExpr = exp;
+                    annIndex = i;
+                    List<RexNode> funcOperands = ((RexCall) exp).getOperands();
+                    String vecColName = ((RexLiteral) (funcOperands.get(0))).toString().replace("\'", "");
+                    String queryVec = ((RexLiteral) (funcOperands.get(1))).toString().replace("\'", "");
+                    String searchParams = ((RexLiteral) (funcOperands.get(2))).toString().replace("\'", "");
+                    milvusTableScan.getPushDownParam().setSearchQuery(true);
+                    milvusTableScan.getPushDownParam().setSearchVecColName(vecColName);
+                    milvusTableScan.getPushDownParam().setSearchVec(queryVec);
+                    milvusTableScan.getPushDownParam().setSearchParams(searchParams);
                     break;
                 }
             }
@@ -58,7 +70,6 @@ public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTable
         newProjects.set(annIndex, scoreRef);
         LogicalProject newProject = LogicalProject.create(milvusTableScan, project.getHints(), newProjects, project.getRowType().getFieldNames());
         relOptRuleCall.transformTo(newProject);
-        System.out.println("hit ann and update");
     }
 
     @Value.Immutable(singleton = false)
@@ -77,7 +88,7 @@ public class MilvusProjectAnnTableScanRule extends RelRule<MilvusProjectAnnTable
             for (RexNode exp : project.getProjects()) {
                 if (exp instanceof RexCall) {
                     RexCall call = (RexCall) exp;
-                    if (call.op.getName().equalsIgnoreCase(Ann.funcName)) {
+                    if (call.op.getName().equalsIgnoreCase(Ann.annFuncName) || call.op.getName().equalsIgnoreCase(Ann.annsFuncName)) {
                         return true;
                     }
                 }
