@@ -36,10 +36,10 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         Connection connection = super.connect(url, info);
 
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.User)) {
-            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty("user", MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)));
+            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)));
         }
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord)) {
-            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord, info.getProperty("password", ""));
+            info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.PassWord, info.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)));
         }
         if (url.contains("//")) {
             parseMilvusUrl(url, info);

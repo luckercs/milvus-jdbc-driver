@@ -19,9 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
 
-/**
- * 仅 milvus 数据源查询
- */
+
 public class MilvusJdbcDemo {
 
     private static final Logger LOG = LoggerFactory.getLogger(MilvusJdbcDemo.class);
@@ -30,14 +28,14 @@ public class MilvusJdbcDemo {
     private static final String MILVUS_JDBC_URL = "jdbc:milvus://localhost:19530/default";
 
     private static final String USER = "root";
-    private static final String PASS = "Milvus";
+    private static final String PASS = "";
 
 
     public static void main(String[] args) throws Exception {
         Class.forName(MILVUS_JDBC_DRIVER);
         Connection connection = DriverManager.getConnection(MILVUS_JDBC_URL, USER, PASS);
 
-        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc-driver\\milvus-jdbc-example\\src\\main\\resources\\query_1.sql";
+        String filePath = "C:\\Users\\renjt1\\rjt\\project\\milvus-jdbc\\milvus-jdbc-example\\src\\main\\resources\\query_1.sql";
         String sql = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
         System.out.println("sql=" + sql);
 

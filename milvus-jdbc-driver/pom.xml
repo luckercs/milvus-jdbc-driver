@@ -18,41 +18,31 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <log4j2.version>2.17.2</log4j2.version>
         <calcite.version>1.40.0</calcite.version>
-        <avatica.version>1.26.0</avatica.version>
         <milvus.sdk.version>2.5.11</milvus.sdk.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j2.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j2.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>io.milvus</groupId>
             <artifactId>milvus-sdk-java</artifactId>
             <version>${milvus.sdk.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
             <version>${calcite.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.11.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.immutables</groupId>
             <artifactId>value</artifactId>
@@ -63,8 +53,6 @@
             <artifactId>value-annotations</artifactId>
             <version>2.8.8</version>
         </dependency>
-
-
     </dependencies>
 
     <build>
@@ -80,48 +68,48 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
-                <configuration>
-                    <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    </transformers>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>**/*.proto</exclude>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                                <exclude>META-INF/DEPENDENCIES</exclude>
-                                <exclude>META-INF/LICENSE</exclude>
-                                <exclude>META-INF/license/*</exclude>
-                                <exclude>META-INF/LICENSE.txt</exclude>
-                                <exclude>META-INF/NOTICE.txt</exclude>
-                                <exclude>META-INF/*.md</exclude>
-                                <exclude>META-INF/maven/**</exclude>
-                                <exclude>LICENSE.txt</exclude>
-                                <exclude>NOTICE.txt</exclude>
-                                <exclude>mozilla/**</exclude>
-                                <exclude>**/module-info.class</exclude>
-                                <exclude>log4j2.properties</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-shade-plugin</artifactId>-->
+<!--                <version>3.6.0</version>-->
+<!--                <configuration>-->
+<!--                    <transformers>-->
+<!--                        <transformer-->
+<!--                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>-->
+<!--                    </transformers>-->
+<!--                    <filters>-->
+<!--                        <filter>-->
+<!--                            <artifact>*:*</artifact>-->
+<!--                            <excludes>-->
+<!--                                <exclude>**/*.proto</exclude>-->
+<!--                                <exclude>META-INF/*.SF</exclude>-->
+<!--                                <exclude>META-INF/*.DSA</exclude>-->
+<!--                                <exclude>META-INF/*.RSA</exclude>-->
+<!--                                <exclude>META-INF/DEPENDENCIES</exclude>-->
+<!--                                <exclude>META-INF/LICENSE</exclude>-->
+<!--                                <exclude>META-INF/license/*</exclude>-->
+<!--                                <exclude>META-INF/LICENSE.txt</exclude>-->
+<!--                                <exclude>META-INF/NOTICE.txt</exclude>-->
+<!--                                <exclude>META-INF/*.md</exclude>-->
+<!--                                <exclude>META-INF/maven/**</exclude>-->
+<!--                                <exclude>LICENSE.txt</exclude>-->
+<!--                                <exclude>NOTICE.txt</exclude>-->
+<!--                                <exclude>mozilla/**</exclude>-->
+<!--                                <exclude>**/module-info.class</exclude>-->
+<!--                                <exclude>log4j2.properties</exclude>-->
+<!--                            </excludes>-->
+<!--                        </filter>-->
+<!--                    </filters>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>shade</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 </project>
