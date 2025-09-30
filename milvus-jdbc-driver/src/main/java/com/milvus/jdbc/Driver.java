@@ -33,8 +33,6 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
             throw new SQLException("URL " + url + " not supported");
         }
         info.setProperty("lex", "MYSQL");
-        Connection connection = super.connect(url, info);
-
         if (!info.containsKey(DATASOURCE_MILVUS + MilvusSchemaOptions.User)) {
             info.setProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.User, info.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)));
         }
@@ -44,23 +42,60 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
         if (url.contains("//")) {
             parseMilvusUrl(url, info);
         }
-
         Properties milvusProps = filterDataSourceProps(info, DATASOURCE_MILVUS);
-        CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
-        SchemaPlus rootSchema = calciteConnection.getRootSchema();
-        rootSchema.add(info.getProperty(DATASOURCE_MILVUS + MilvusSchemaOptions.DB), new MilvusSchema(
-                        milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim(),
-                        milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim(),
-                        milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim(),
-                        milvusProps.getProperty(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB)).trim(),
-                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.TimeOutMs).toString()).trim()),
-                        Boolean.parseBoolean(milvusProps.getProperty(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL).toString()).trim()),
-                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.BatchSize, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.BatchSize).toString()).trim())
-                )
-        );
 
-        rootSchema.add(Ann.annFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annFuncName));
-        rootSchema.add(Ann.annsFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annsFuncName));
+        info.put("model", "inline:" +
+                "{" +
+                "  \"version\": \"1.0\"," +
+                "  \"defaultSchema\": \"milvus\"," +
+                "  \"schemas\": [" +
+                "    {" +
+                "      \"name\": \"milvus\"," +
+                "      \"type\": \"custom\"," +
+                "      \"factory\": \"com.milvus.connector.MilvusSchemaFactory\"," +
+                "      \"operand\": {" +
+                "        \"" + MilvusSchemaOptions.URI + "\": \"" + milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim() + "\"," +
+                "        \"" + MilvusSchemaOptions.User + "\": \"" + milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim() + "\"," +
+                "        \"" + MilvusSchemaOptions.PassWord + "\": \"" + milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim() + "\"," +
+                "        \"" + MilvusSchemaOptions.DB + "\": \"" + milvusProps.getProperty(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB)).trim() + "\"," +
+                "        \"" + MilvusSchemaOptions.TimeOutMs + "\": " + Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.TimeOutMs).toString()).trim()) + "," +
+                "        \"" + MilvusSchemaOptions.UseSSL + "\": " + Boolean.parseBoolean(milvusProps.getProperty(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL).toString()).trim()) + "," +
+                "        \"" + MilvusSchemaOptions.BatchSize + "\": " + Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.BatchSize, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.BatchSize).toString()).trim()) +
+                "      }," +
+                "      \"functions\": [" +
+                "        {" +
+                "          \"name\": \"" + Ann.annFuncName + "\"," +
+                "          \"className\": \"com.milvus.functions.Ann\"," +
+                "          \"methodName\": \"" + Ann.annFuncName + "\"" +
+                "        }," +
+                "        {" +
+                "          \"name\": \"" + Ann.annsFuncName + "\"," +
+                "          \"className\": \"com.milvus.functions.Ann\"," +
+                "          \"methodName\": \"" + Ann.annsFuncName + "\"" +
+                "        }" +
+                "      ]" +
+                "    }" +
+                "  ]" +
+                "}");
+
+        Connection connection = super.connect(url, info);
+
+
+//        CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
+//        SchemaPlus rootSchema = calciteConnection.getRootSchema();
+//        rootSchema.add("milvus", new MilvusSchema(
+//                        milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim(),
+//                        milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim(),
+//                        milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim(),
+//                        milvusProps.getProperty(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB)).trim(),
+//                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.TimeOutMs).toString()).trim()),
+//                        Boolean.parseBoolean(milvusProps.getProperty(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL).toString()).trim()),
+//                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.BatchSize, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.BatchSize).toString()).trim())
+//                )
+//        );
+
+//        rootSchema.add(Ann.annFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annFuncName));
+//        rootSchema.add(Ann.annsFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annsFuncName));
         return connection;
     }
 
