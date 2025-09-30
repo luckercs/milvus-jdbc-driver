@@ -103,19 +103,17 @@
                                 <exclude>log4j.xml</exclude>
                             </excludes>
                         </filter>
-                        <filter>
-                            <artifactId>log4j-slf4j-impl</artifactId>
-                            <excludes>
-                                <exclude>**/*</exclude>
-                            </excludes>
-                        </filter>
-                        <filter>
-                            <artifactId>log4j-core</artifactId>
-                            <excludes>
-                                <exclude>**/*</exclude>
-                            </excludes>
-                        </filter>
                     </filters>
+                    <relocations>
+                        <relocation>
+                            <pattern>io.grpc</pattern>
+                            <shadedPattern>milvus.jdbc.shade.io.grpc</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.google</pattern>
+                            <shadedPattern>milvus.jdbc.shade.com.google</shadedPattern>
+                        </relocation>
+                    </relocations>
                 </configuration>
                 <executions>
                     <execution>
