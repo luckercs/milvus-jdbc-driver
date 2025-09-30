@@ -43,7 +43,8 @@ public class MilvusTableScan extends TableScan implements EnumerableRel {
                                 Expressions.constant(milvusPushDownParam.getOutputFields()),
                                 Expressions.constant(milvusPushDownParam.isSearchQuery()),
                                 Expressions.constant(milvusPushDownParam.getSearchVecColName()),
-                                Expressions.constant(milvusPushDownParam.getSearchVec())
+                                Expressions.constant(milvusPushDownParam.getSearchVec()),
+                                Expressions.constant(milvusPushDownParam.getSearchParams())
                         )
                 )));
     }
