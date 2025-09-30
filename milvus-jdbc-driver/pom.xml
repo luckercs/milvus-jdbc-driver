@@ -110,8 +110,8 @@
                             <shadedPattern>milvus.jdbc.shade.io.grpc</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>com.google</pattern>
-                            <shadedPattern>milvus.jdbc.shade.com.google</shadedPattern>
+                            <pattern>com.google.protobuf</pattern>
+                            <shadedPattern>milvus.jdbc.shade.com.google.protobuf</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
