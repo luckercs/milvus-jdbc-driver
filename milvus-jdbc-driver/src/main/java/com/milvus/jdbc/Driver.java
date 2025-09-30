@@ -1,11 +1,7 @@
 package com.milvus.jdbc;
 
 import com.milvus.functions.Ann;
-import com.milvus.connector.MilvusSchema;
 import com.milvus.options.MilvusSchemaOptions;
-import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.schema.impl.ScalarFunctionImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -80,22 +76,6 @@ public class Driver extends org.apache.calcite.jdbc.Driver {
 
         Connection connection = super.connect(url, info);
 
-
-//        CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
-//        SchemaPlus rootSchema = calciteConnection.getRootSchema();
-//        rootSchema.add("milvus", new MilvusSchema(
-//                        milvusProps.getProperty(MilvusSchemaOptions.URI, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.URI)).trim(),
-//                        milvusProps.getProperty(MilvusSchemaOptions.User, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.User)).trim(),
-//                        milvusProps.getProperty(MilvusSchemaOptions.PassWord, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.PassWord)).trim(),
-//                        milvusProps.getProperty(MilvusSchemaOptions.DB, MilvusSchemaOptions.getStringDefaultValue(MilvusSchemaOptions.DB)).trim(),
-//                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.TimeOutMs, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.TimeOutMs).toString()).trim()),
-//                        Boolean.parseBoolean(milvusProps.getProperty(MilvusSchemaOptions.UseSSL, MilvusSchemaOptions.getBoolDefaultValue(MilvusSchemaOptions.UseSSL).toString()).trim()),
-//                        Integer.parseInt(milvusProps.getProperty(MilvusSchemaOptions.BatchSize, MilvusSchemaOptions.getIntDefaultValue(MilvusSchemaOptions.BatchSize).toString()).trim())
-//                )
-//        );
-
-//        rootSchema.add(Ann.annFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annFuncName));
-//        rootSchema.add(Ann.annsFuncName, ScalarFunctionImpl.create(Ann.class, Ann.annsFuncName));
         return connection;
     }
 
